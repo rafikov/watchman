@@ -1,0 +1,313 @@
+(function () {
+  let debugEnabled = false;
+  let debugTimer = null;
+  let badge = null;
+
+  function detectPage() {
+    const container = document.querySelector(".container");
+    if (!container) return null;
+    if (container.classList.contains("w-campus")) return "campus";
+    if (container.classList.contains("w-coins")) return "coins";
+    if (container.classList.contains("w-peers")) return "peers";
+    return null;
+  }
+
+  const pageType = detectPage();
+  if (!pageType) return;
+
+  function createBadge() {
+    if (!badge) {
+      badge = document.createElement("div");
+      badge.id = "debug-badge";
+      document.body.appendChild(badge);
+      updateBadge("hint");
+    }
+  }
+
+  function updateBadge(mode) {
+    if (!badge) return;
+
+    if (mode === "active") {
+      badge.textContent = "DEBUG MODE";
+      badge.style.cssText =
+        "position: fixed; bottom: 10px; right: 10px; background: red; color: white; padding: 5px 10px; border-radius: 4px; font-size: 12px; z-index: 9999; cursor: default;";
+    } else {
+      badge.textContent = "Ctrl + Shift + D";
+      badge.style.cssText =
+        "position: fixed; bottom: 10px; right: 10px; background: rgba(0,0,0,0.7); color: white; padding: 5px 10px; border-radius: 4px; font-size: 12px; z-index: 9998; cursor: default;";
+    }
+  }
+
+  const MOCK_USERS = [
+    "neo",
+    "morpheus",
+    "trinity",
+    "smith",
+    "cypher",
+    "tank",
+    "dozer",
+    "mouse",
+    "apoc",
+    "switch",
+  ];
+
+  window.isDebugUser = function(login) {
+      return MOCK_USERS.includes(login);
+  };
+
+  window.handleDebugTooltip = function(login) {
+      if (!MOCK_USERS.includes(login)) return false;
+
+      const levelEl = document.getElementById("tt-level");
+      const classEl = document.getElementById("tt-classname");
+      const projectEl = document.getElementById("tt-project");
+      const statusEl = document.getElementById("tt-status");
+
+      if (levelEl) levelEl.textContent = "Debug";
+      if (classEl) classEl.textContent = "Matrix";
+      if (projectEl) projectEl.textContent = "Simulation";
+      if (statusEl) {
+          statusEl.textContent = "Virtual";
+          statusEl.style.background = "#e2e3e5";
+      }
+      return true;
+  };
+
+  createBadge();
+
+  function simulateCampus() {
+    const clusters = window.clusters;
+    const mapData = window.mapData;
+    const hostState = window.hostState;
+    const selectedPeers = window.selectedPeers;
+    const logUpdate = window.logUpdate;
+    const playSound = window.playSound;
+    const eventSelect = document.getElementById("event-select");
+    const soundCheckbox = document.getElementById("sound-enabled");
+
+    if (!clusters || clusters.length === 0) return;
+
+    const randomCluster = clusters[Math.floor(Math.random() * clusters.length)];
+    const hosts = mapData.get(randomCluster.id);
+
+    if (!hosts || hosts.length === 0) return;
+
+    const randomHost = hosts[Math.floor(Math.random() * hosts.length)];
+    const seatId = `${randomCluster.id}-${randomHost.row}-${randomHost.number}`;
+
+    const now = new Date();
+    const timeStr = `${String(now.getHours()).padStart(2, "0")}:${String(
+      now.getMinutes()
+    ).padStart(2, "0")}`;
+    const location = `${randomCluster.name} ${randomHost.row}-${randomHost.number}`;
+
+    const filterMode = eventSelect ? eventSelect.value : "all";
+    const shouldLog = (u) => {
+      if (filterMode === "login" && selectedPeers)
+        return selectedPeers.has(u.toLowerCase());
+      return true;
+    };
+
+    if (randomHost.login) {
+      const user = randomHost.login;
+      randomHost.login = null;
+      if (hostState) hostState.delete(seatId);
+
+      if (logUpdate && shouldLog(user)) {
+        logUpdate({ type: "logout", location, user, time: timeStr });
+      }
+
+      const seatEl = document.querySelector(
+        `.seat[data-location="${location}"]`
+      );
+      if (seatEl) {
+        seatEl.classList.remove("occupied", "watched");
+        seatEl.removeAttribute("data-login");
+        seatEl.title = "";
+      }
+    } else {
+      const randomUser =
+        MOCK_USERS[Math.floor(Math.random() * MOCK_USERS.length)];
+
+      randomHost.login = randomUser;
+      if (hostState)
+        hostState.set(seatId, { user: randomUser, seatId, location });
+
+      if (logUpdate && shouldLog(randomUser)) {
+        logUpdate({ type: "login", location, user: randomUser, time: timeStr });
+      }
+
+      const seatEl = document.querySelector(
+        `.seat[data-location="${location}"]`
+      );
+      if (seatEl) {
+        seatEl.classList.add("occupied");
+        seatEl.dataset.login = randomUser;
+        seatEl.title = randomUser;
+
+        if (selectedPeers && selectedPeers.has(randomUser.toLowerCase())) {
+          seatEl.classList.add("watched");
+        }
+      }
+    }
+
+    if (soundCheckbox && soundCheckbox.checked && playSound) {
+      playSound();
+    }
+  }
+
+  async function simulateCoins() {
+    const participants = window.participants;
+    const saveToStorage = window.saveToStorage;
+    const logUpdate = window.logUpdate;
+    const renderParticipants = window.renderParticipants;
+    const playSound = window.playSound;
+    const sendTelegramMessage = window.sendTelegramMessage;
+    const showStatus = window.showStatus;
+    const soundCheckbox = document.getElementById("sound-enabled");
+    const telegramCheckbox = document.getElementById("telegram-enabled");
+
+    if (!participants) return;
+
+    let login = "DebugUser";
+    if (participants.size > 0) {
+      const keys = Array.from(participants.keys());
+      login = keys[Math.floor(Math.random() * keys.length)];
+    }
+
+    const diff = Math.floor(Math.random() * 200) - 100;
+    if (diff === 0) return;
+
+    const currentData = participants.get(login) || { coins: 1000 };
+    const newCoins = currentData.coins + diff;
+    const diffStr = diff > 0 ? `+${diff}` : `${diff}`;
+
+    participants.set(login, { ...currentData, coins: newCoins });
+
+    if (saveToStorage) saveToStorage();
+    if (logUpdate) logUpdate(login, diff);
+    if (renderParticipants) renderParticipants();
+
+    if (soundCheckbox && soundCheckbox.checked && playSound) {
+      playSound();
+    }
+
+    if (telegramCheckbox && telegramCheckbox.checked && sendTelegramMessage) {
+      const now = new Date();
+      const timeStr = `${String(now.getHours()).padStart(2, "0")}:${String(
+        now.getMinutes()
+      ).padStart(2, "0")}`;
+      const msg = `Вахтёр / Монетки. События (DEBUG):\n${timeStr} ${login} ${diffStr}`;
+      await sendTelegramMessage(msg);
+    }
+
+    if (showStatus) showStatus(`Debug event: ${login} ${diffStr}`);
+  }
+
+  async function simulatePeers() {
+    const participants = window.participants;
+    const saveToStorage = window.saveToStorage;
+    const logUpdate = window.logUpdate;
+    const renderParticipants = window.renderParticipants;
+    const playSound = window.playSound;
+    const sendTelegramMessage = window.sendTelegramMessage;
+    const showStatus = window.showStatus;
+    const soundCheckbox = document.getElementById("sound-enabled");
+    const telegramCheckbox = document.getElementById("telegram-enabled");
+
+    if (!participants) return;
+
+    let login = "DebugUser";
+    if (participants.size > 0) {
+      const keys = Array.from(participants.keys());
+      login = keys[Math.floor(Math.random() * keys.length)];
+    }
+
+    const diff = Math.floor(Math.random() * 200) - 100;
+    if (diff === 0) return;
+
+    const currentData = participants.get(login) || {
+      coins: 1000,
+      xp: 0,
+      prp: 0,
+      level: 0,
+      projects: [],
+      status: "Offline",
+      className: "-",
+    };
+
+    const rand = Math.random();
+    let eventText = "";
+
+    if (rand < 0.3) {
+      const newXp = (currentData.xp || 0) + diff;
+      const newData = { ...currentData, xp: newXp };
+      participants.set(login, newData);
+      eventText = `XP изменился: ${diff > 0 ? "+" : ""}${diff} (${
+        currentData.xp
+      } &rarr; ${newXp})`;
+    } else if (rand < 0.6) {
+      const newPrp = (currentData.prp || 0) + diff / 10;
+      const newData = { ...currentData, prp: newPrp };
+      participants.set(login, newData);
+      eventText = `PRP изменился: ${diff > 0 ? "+" : ""}${diff / 10} (${
+        currentData.prp
+      } &rarr; ${newPrp})`;
+    } else {
+      const statuses = ["Online (C1 R1)", "Offline", "Online (C2 R2)"];
+      const newStatus = statuses[Math.floor(Math.random() * statuses.length)];
+      const newData = { ...currentData, status: newStatus };
+      participants.set(login, newData);
+      eventText = `Статус: ${currentData.status} &rarr; ${newStatus}`;
+    }
+
+    if (saveToStorage) saveToStorage();
+    if (logUpdate) logUpdate(login, eventText);
+    if (renderParticipants) renderParticipants();
+
+    if (soundCheckbox && soundCheckbox.checked && playSound) {
+      playSound();
+    }
+
+    if (telegramCheckbox && telegramCheckbox.checked && sendTelegramMessage) {
+      const now = new Date();
+      const timeStr = `${String(now.getHours()).padStart(2, "0")}:${String(
+        now.getMinutes()
+      ).padStart(2, "0")}`;
+      const msg = `Вахтёр / Пиры. События (DEBUG):\n${timeStr} ${login} ${eventText}`;
+      await sendTelegramMessage(msg);
+    }
+
+    if (showStatus) showStatus(`Debug event: ${login}`);
+  }
+
+  function toggleDebug() {
+    if (pageType === "campus") {
+      debugEnabled = !debugEnabled;
+      if (debugEnabled) {
+        updateBadge("active");
+        if (window.showStatus) window.showStatus("Debug Mode ENABLED");
+        simulateCampus();
+        debugTimer = setInterval(simulateCampus, 3000);
+      } else {
+        updateBadge("hint");
+        if (window.showStatus) window.showStatus("Debug Mode DISABLED");
+        if (debugTimer) {
+          clearInterval(debugTimer);
+          debugTimer = null;
+        }
+      }
+    } else if (pageType === "coins") {
+      simulateCoins();
+    } else if (pageType === "peers") {
+      simulatePeers();
+    }
+  }
+
+  document.addEventListener("keydown", (e) => {
+    if (e.ctrlKey && e.shiftKey && e.code === "KeyD") {
+      e.preventDefault();
+      toggleDebug();
+    }
+  });
+})();

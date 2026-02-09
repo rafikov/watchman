@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Вахтёр / Пиры</title>
+  <link rel="icon" type="image/svg+xml"
+    href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 18 15' fill='%23914BE3'><path d='M12.5 0C15.538 0 18 2.462 18 5.5V15H5v-3h10V9H5V6h10v-.5C15 4.119 13.881 3 12.5 3H5V0h7.5zM0 3h3v3H0zm0 6h3v3H0z'/></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="login.js"></script>
+  <script src="script.js"></script>
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+  <div class="container w-peers">
+    <header>
+      <a href="../index.html" onclick="return openUniqueTab(this.href, 'tab_index')" class="logo">Вахтёр
+        <span>Пиры</span></a>
+
+      <div class="controls">
+        <select id="update-interval">
+          <option value="5">Каждые 5 минут</option>
+          <option value="15" selected>Каждые 15 минут</option>
+          <option value="30">Каждые 30 минут</option>
+          <option value="60">Каждый час</option>
+        </select>
+
+        <label class="checkbox-label">
+          <input type="checkbox" id="sound-enabled" />
+          Звук
+        </label>
+
+        <label class="checkbox-label">
+          <input type="checkbox" id="telegram-enabled" />
+          Телеграм
+        </label>
+
+        <button id="subscribe-btn">Подписаться</button>
+      </div>
+    </header>
+
+    <div class="main-grid">
+      <div class="left-column">
+        <div class="add-participant">
+          <input type="text" id="login-input" placeholder="Имя пира (например, watchman)" />
+          <button id="add-btn">Добавить</button>
+        </div>
+
+        <div class="participants-list" id="participants-list">
+          <!-- Participants will be added here -->
+          <div class="placeholder-card"></div>
+          <div class="placeholder-card"></div>
+          <div class="placeholder-card"></div>
+          <div class="placeholder-card"></div>
+        </div>
+      </div>
+
+      <div class="right-column">
+        <div class="updates-log" id="updates-log">
+          <!-- Logs will appear here -->
+        </div>
+      </div>
+    </div>
+
+    <footer class="page-footer">
+      <div class="footer-left">
+        <svg width="18" height="15" viewBox="0 0 18 15" fill="#7D838E">
+          <path
+            d="M12.5 0C15.538 0 18 2.462 18 5.5V15H5v-3h10V9H5V6h10v-.5C15 4.119 13.881 3 12.5 3H5V0h7.5zM0 3h3v3H0zm0 6h3v3H0z" />
+        </svg>
+        <span class="motto"><a href="https://github.com/rafikov/watchman">Вахтёр</a> сидит на гите</span>
+      </div>
+    </footer>
+  </div>
+
+  <div id="status-message"></div>
+
+  <script>
+    const participants = new Map();
+    let isSubscribed = false;
+    let subscriptionTimer = null;
+    let countdownTimer = null;
+
+    const loginInput = document.getElementById("login-input");
+    const addBtn = document.getElementById("add-btn");
+    const participantsList = document.getElementById("participants-list");
+    const updatesLog = document.getElementById("updates-log");
+    const subscribeBtn = document.getElementById("subscribe-btn");
+    const intervalSelect = document.getElementById("update-interval");
+    const soundCheckbox = document.getElementById("sound-enabled");
+    const telegramCheckbox = document.getElementById("telegram-enabled");
+    const statusMessage = document.getElementById("status-message");
+
+    function saveToStorage() {
+      saveMapToStorage("watchman_peers", participants);
+    }
+
+    function loadFromStorage() {
+      const loaded = loadMapFromStorage(
+        "watchman_peers",
+        participants,
+        "Failed to load peers"
+      );
+      if (loaded) {
+        renderParticipants();
+      }
+    }
+
+    window.addEventListener("load", () => {
+      if (typeof TG_CONFIG === "undefined" || !TG_CONFIG.botToken) {
+        if (telegramCheckbox) {
+          telegramCheckbox.disabled = true;
+          telegramCheckbox.title = "Configure bot in login.js";
+        }
+      }
+      loadFromStorage();
+      checkUpdates();
+    });
+
+    async function fetchPeerData(token, login) {
+      const basicRes = await fetch(`${BASE_URL}/participants/${login}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!basicRes.ok) throw new Error(`User ${login} not found`);
+      const basic = await basicRes.json();
+
+      const pointsRes = await fetch(
+        `${BASE_URL}/participants/${login}/points`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      if (!pointsRes.ok)
+        console.warn(`Failed to fetch points for ${login}`, pointsRes.status);
+      const pointsData = pointsRes.ok ? await pointsRes.json() : {};
+
+      const projRes = await fetch(
+        `${BASE_URL}/participants/${login}/projects?limit=1000`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      if (!projRes.ok)
+        console.warn(`Failed to fetch projects for ${login}`, projRes.status);
+      const projBody = projRes.ok ? await projRes.json() : {};
+      const projData = projBody.projects || [];
+
+      let onlineStatus = "Offline";
+      try {
+        const workRes = await fetch(
+          `${BASE_URL}/participants/${login}/workstation`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        if (workRes.ok) {
+          const work = await workRes.json();
+          onlineStatus = `Online (${work.clusterName} ${work.row}${work.number})`;
+        } else {
+          onlineStatus = basic.status || "Offline";
+        }
+      } catch (e) {
+        onlineStatus = basic.status || "Offline";
+      }
+
+      let className = basic.className || "-";
+
+      const prp =
+        pointsData.peerReviewPoints !== undefined
+          ? pointsData.peerReviewPoints
+          : 0;
+
+      const level = basic.level || 0;
+      const xp = basic.expValue || 0;
+      const expToNext = basic.expToNextLevel || 0;
+
+      const processedProjects = processProjects(projData, basic.login);
+
+      return {
+        login: basic.login,
+        className,
+        prp,
+        level,
+        xp,
+        expToNext,
+        status: onlineStatus,
+        projects: processedProjects,
+        timestamp: Date.now(),
+      };
+    }
+
+    function processProjects(projData, currentLogin) {
+      if (!Array.isArray(projData)) return [];
+
+      const getTeamSuffix = (p) => {
+        if (p.teamMembers && p.teamMembers.length > 0) {
+          if (p.teamMembers.length > 1) {
+            const me = p.teamMembers.find((m) => m.login === currentLogin);
+            if (me) {
+              return me.isTeamlead ? " | Lead" : " | Team";
+            }
+          }
+        }
+        return "";
+      };
+
+      const inProgress = projData.filter((p) => p.status === "IN_PROGRESS");
+      const review = projData.filter((p) => p.status === "IN_REVIEWS");
+      const accepted = projData.filter((p) => p.status === "ACCEPTED");
+
+      let result = [];
+
+      inProgress.forEach((p) =>
+        result.push({
+          name: p.title,
+          statusLabel: "In progress" + getTeamSuffix(p),
+          colorClass: "in-progress",
+          rawStatus: p.status,
+        })
+      );
+
+      review.forEach((p) =>
+        result.push({
+          name: p.title,
+          statusLabel: "Review" + getTeamSuffix(p),
+          colorClass: "review",
+          rawStatus: p.status,
+        })
+      );
+
+      accepted.sort(
+        (a, b) =>
+          new Date(b.completionDateTime || 0) -
+          new Date(a.completionDateTime || 0)
+      );
+      accepted.forEach((p) =>
+        result.push({
+          name: p.title,
+          statusLabel: "Accepted" + getTeamSuffix(p),
+          colorClass: "accepted",
+          rawStatus: p.status,
+        })
+      );
+
+      if (result.length === 0) {
+        const others = projData.filter((p) =>
+          ["REGISTERED", "ASSIGNED"].includes(p.status)
+        );
+        others.forEach((p) =>
+          result.push({
+            name: p.title,
+            statusLabel: "Ready to start" + getTeamSuffix(p),
+            colorClass: "ready",
+            rawStatus: p.status,
+          })
+        );
+
+        if (result.length === 0) {
+          const failed = projData.filter((p) => p.status === "FAILED");
+          failed.sort(
+            (a, b) =>
+              new Date(b.completionDateTime || 0) -
+              new Date(a.completionDateTime || 0)
+          );
+          failed.slice(0, 5).forEach((p) =>
+            result.push({
+              name: p.title,
+              statusLabel: "Failed" + getTeamSuffix(p),
+              colorClass: "failed",
+              rawStatus: p.status,
+            })
+          );
+        }
+      }
+
+      return result;
+    }
+
+    async function addParticipant() {
+      const login = loginInput.value.trim().toLowerCase();
+      if (!login) return;
+
+      if (participants.has(login)) {
+        showStatus("User already in list", true);
+        return;
+      }
+
+      addBtn.disabled = true;
+      addBtn.textContent = "Загружаем";
+      addBtn.classList.add("btn-loading");
+
+      try {
+        const token = await getAccessToken();
+        const data = await fetchPeerData(token, login);
+
+        participants.set(login, data);
+        saveToStorage();
+        renderParticipants();
+        loginInput.value = "";
+        showStatus(`Added ${login}`);
+      } catch (e) {
+        console.error(e);
+        showStatus(`Error: ${e.message}`, true);
+      } finally {
+        addBtn.disabled = false;
+        addBtn.textContent = "Добавить";
+        addBtn.classList.remove("btn-loading");
+      }
+    }
+
+    function removeParticipant(login) {
+      participants.delete(login);
+      saveToStorage();
+      renderParticipants();
+    }
+
+    function renderParticipants() {
+      participantsList.innerHTML = "";
+
+      if (participants.size === 0) {
+        renderPlaceholders(participantsList, 4);
+        return;
+      }
+
+      participants.forEach((data, login) => {
+        const card = document.createElement("div");
+        card.className = "peer-card";
+
+        const chipsHtml = data.projects
+          .map(
+            (p) => `
+                <div class="chip ${p.colorClass}">
+                    ${p.name}
+                    <span class="status-text">${p.statusLabel}</span>
+                </div>
+            `
+          )
+          .join("");
+
+        const isOnline = data.status.startsWith("Online");
+        const statusClass = isOnline ? "в&nbsp;кампусе" : "";
+
+        card.innerHTML = `
+                <button class="delete-btn delete-btn-card" onclick="removeParticipant('${login}')">Удалить</button>
+                <div class="peer-header">
+                    <span class="peer-login"><a href="https://platform.21-school.ru/profile/${login}" target="_blank" style="text-decoration:none; color:inherit;">${data.login
+          }</a></span>
+                    <div class="peer-stats">
+                         <span>PRP: <span class="stat-value">${data.prp
+          }</span></span>
+                         <span class="stat-xp">XP: <span class="stat-value">${data.xp
+          }</span> след.: ${data.expToNext}</span>
+                         <span>Уровень: <span class="stat-value">${data.level
+          }</span></span>
+                    </div>
+                </div>
+                <div class="peer-subheader">
+                    <span class="peer-status ${statusClass}">${data.status
+          }</span>
+					<span class="peer-class">${data.className}</span>
+                </div>
+                <div class="peer-projects" title="Скролл на тачпаде или клик + стрелки &larr;&rarr;">
+                    ${chipsHtml ||
+          '<span style="color:#666; font-size:12px;">No active projects</span>'
+          }
+                </div>
+            `;
+
+        participantsList.appendChild(card);
+      });
+    }
+
+    async function checkUpdates() {
+      if (participants.size === 0) return;
+
+      try {
+        const token = await getAccessToken();
+
+        const promises = Array.from(participants.keys()).map(
+          async (login) => {
+            try {
+              const newData = await fetchPeerData(token, login);
+              return { login, newData };
+            } catch (e) {
+              console.warn(`Update failed for ${login}`, e);
+              return null;
+            }
+          }
+        );
+
+        const results = await Promise.all(promises);
+        let hasUpdates = false;
+        let events = [];
+
+        results.forEach((res) => {
+          if (!res) return;
+          const { login, newData } = res;
+          const oldData = participants.get(login);
+
+          if (newData.xp !== oldData.xp) {
+            const diff = newData.xp - oldData.xp;
+            events.push({
+              login,
+              text: `XP изменился: ${diff > 0 ? "+" : ""}${diff} (${oldData.xp
+                } &rarr; ${newData.xp})`,
+            });
+          }
+
+          if (newData.prp !== oldData.prp) {
+            const diff = newData.prp - oldData.prp;
+            events.push({
+              login,
+              text: `PRP изменился: ${diff > 0 ? "+" : ""}${diff} (${oldData.prp
+                } &rarr; ${newData.prp})`,
+            });
+          }
+
+          if (newData.status !== oldData.status) {
+            events.push({
+              login,
+              text: `Статус: ${oldData.status} &rarr; ${newData.status}`,
+            });
+          }
+
+          const oldProjStr = JSON.stringify(
+            oldData.projects.map((p) => p.rawStatus)
+          );
+          const newProjStr = JSON.stringify(
+            newData.projects.map((p) => p.rawStatus)
+          );
+
+          if (oldProjStr !== newProjStr) {
+            events.push({ login, text: `Изменения в проектах` });
+          }
+
+          if (events.length > 0) hasUpdates = true;
+
+          participants.set(login, newData);
+        });
+
+        if (hasUpdates) {
+          saveToStorage();
+          renderParticipants();
+
+          if (soundCheckbox.checked) playSound();
+
+          events.forEach((ev) => {
+            logUpdate(ev.login, ev.text);
+          });
+
+          if (telegramCheckbox.checked && events.length > 0) {
+            const msg = `Вахтёр / Пиры. События:\n${events
+              .map((e) => `${e.login}: ${e.text}`)
+              .join("\n")}`;
+            sendTelegramMessage(msg);
+          }
+        }
+      } catch (e) {
+        console.error("Polling failed", e);
+      }
+    }
+
+    function logUpdate(login, text) {
+      const now = new Date();
+      const timeStr = `${String(now.getHours()).padStart(2, "0")}:${String(
+        now.getMinutes()
+      ).padStart(2, "0")}`;
+
+      const entry = document.createElement("div");
+      entry.className = "log-entry";
+      entry.innerHTML = `
+            <div class="log-time">${timeStr}</div>
+            <div class="log-content">
+                <span class="log-header">${login}</span>
+                <span class="log-details">${text}</span>
+            </div>
+        `;
+
+      updatesLog.prepend(entry);
+    }
+
+    function toggleSubscription() {
+      if (isSubscribed) {
+        clearInterval(subscriptionTimer);
+        clearInterval(countdownTimer);
+        isSubscribed = false;
+        subscribeBtn.textContent = "Подписаться";
+        subscribeBtn.classList.remove("active");
+        intervalSelect.disabled = false;
+      } else {
+        if (participants.size === 0) {
+          showStatus("Add peers first", true);
+          return;
+        }
+
+        isSubscribed = true;
+        subscribeBtn.classList.add("active");
+        intervalSelect.disabled = true;
+
+        if (telegramCheckbox.checked) {
+          sendTelegramMessage(
+            "Включена подписка на события Вахтёр / Пиры"
+          );
+        }
+
+        const minutes = parseInt(intervalSelect.value);
+
+        checkUpdates();
+
+        startCountdown(minutes * 60);
+
+        subscriptionTimer = setInterval(() => {
+          checkUpdates();
+          startCountdown(minutes * 60);
+        }, minutes * 60 * 1000);
+      }
+    }
+
+    const updateButtonText = (seconds) => {
+      subscribeBtn.textContent = formatDurationHMS(seconds);
+    };
+
+    function startCountdown(seconds) {
+      countdownTimer = startCountdownTimer(
+        seconds,
+        updateButtonText,
+        countdownTimer
+      );
+    }
+
+    const playSound = createSoundPlayer(() => { });
+
+    const showStatus = createStatusHandler(statusMessage);
+
+    addBtn.addEventListener("click", addParticipant);
+    subscribeBtn.addEventListener("click", toggleSubscription);
+    loginInput.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") addParticipant();
+    });
+    soundCheckbox.addEventListener("change", () => {
+      if (soundCheckbox.checked) {
+        playSound();
+      }
+    });
+
+    telegramCheckbox.addEventListener("change", async () => {
+      if (telegramCheckbox.checked) {
+        if (!TG_CONFIG.botToken || !TG_CONFIG.userId) {
+          telegramCheckbox.checked = false;
+          showStatus("Настройте бота в login.js", true);
+          return;
+        }
+
+        try {
+          telegramCheckbox.disabled = true;
+          const botName = await verifyTelegramBot();
+          showStatus(`Подключен бот: @${botName}`);
+        } catch (error) {
+          telegramCheckbox.checked = false;
+          showStatus(`Ошибка Телеграм: ${error.message}`, true);
+        } finally {
+          telegramCheckbox.disabled = false;
+        }
+      }
+    });
+
+    window.participants = participants;
+    window.saveToStorage = saveToStorage;
+    window.logUpdate = logUpdate;
+    window.renderParticipants = renderParticipants;
+    window.playSound = playSound;
+    window.sendTelegramMessage = sendTelegramMessage;
+    window.showStatus = showStatus;
+  </script>
+
+  <!--<script src="debug.js"></script>-->
+</body>
+
+</html>

@@ -1,0 +1,1544 @@
+<!DOCTYPE html>
+
+<html lang="ru">
+
+<head>
+  <meta charset="utf-8" />
+  <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+  <title>Вахтёр / API</title>
+  <link
+    href="data:image/svg+xml,&lt;svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 18 15' fill='%231D222C'&gt;&lt;path d='M12.5 0C15.538 0 18 2.462 18 5.5V15H5v-3h10V9H5V6h10v-.5C15 4.119 13.881 3 12.5 3H5V0h7.5zM0 3h3v3H0zm0 6h3v3H0z'/&gt;&lt;/svg&gt;"
+    rel="icon" type="image/svg+xml" />
+  <link href="https://fonts.googleapis.com" rel="preconnect" />
+  <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+  <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;500;600;700&amp;display=swap"
+    rel="stylesheet" />
+  <script src="login.js"></script>
+  <script src="script.js"></script>
+  <link href="style.css" rel="stylesheet" />
+</head>
+
+<body>
+  <div class="container w-api">
+    <header>
+      <a href="../index.html" onclick="return openUniqueTab(this.href, 'tab_index')" class="logo">Вахтёр
+        <span>Апишка</span></a>
+      <div class="controls">
+        <div class="controls-group">
+          <span id="cache-status">Кэш: OK</span>
+          <button id="refresh-cache-btn">Обновить кэш</button>
+        </div>
+      </div>
+    </header>
+    <div class="main-grid" id="main-grid">
+      <div class="left-column" id="api-list">
+        <div class="api-tag-block" id="tag-Campus">
+          <div class="api-tag-header" onclick="toggleTag(this)">
+            <span class="tag-name">Campus</span>
+            <span class="toggle-icon">
+              <svg fill="none" height="24" viewbox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                  stroke-width="2"></path>
+              </svg>
+            </span>
+          </div>
+          <div class="api-tag-body">
+            <div class="api-operation">
+              <form onsubmit="executeRequest(event, 'get', '/v1/campuses')">
+                <div class="api-row-main">
+                  <div class="path-container" title="Возвращает список кампусов">
+                    <span class="path-text">/v1/campuses</span>
+                  </div>
+                  <button class="execute-btn" type="submit">Получить</button>
+                </div>
+              </form>
+            </div>
+            <div class="api-operation">
+              <form onsubmit="executeRequest(event, 'get', '/v1/campuses/{campusId}/participants')">
+                <div class="api-row-main">
+                  <div class="path-container" title="Возвращает список участников кампуса по ID">
+                    <span class="path-text">/v1/campuses/</span>
+                    <div class="path-param-wrapper">
+                      <input class="api-param-input path-param" data-param-in="path" data-param-name="campusId"
+                        list="list-campusId" name="campusId" placeholder="campusId" required="" type="text"
+                        autocomplete="off" autofill="off" />
+                    </div>
+                    <span class="path-text">/participants</span>
+                  </div>
+                  <button class="execute-btn" type="submit">Получить</button>
+                </div>
+                <div class="api-row-params">
+                  <div class="param-field">
+                    <label title="Максимальное количество возвращаемых записей">limit</label>
+                    <input class="api-param-input" data-param-in="query" data-param-name="limit" list="list-limit"
+                      name="limit" placeholder="limit" type="text" value="50" />
+                  </div>
+                  <div class="param-field">
+                    <label title="Количество записей для пропуска (пагинация)">offset</label>
+                    <input class="api-param-input" data-param-in="query" data-param-name="offset" list="list-offset"
+                      name="offset" placeholder="offset" type="text" value="0" />
+                  </div>
+                </div>
+              </form>
+            </div>
+            <div class="api-operation">
+              <form onsubmit="executeRequest(event, 'get', '/v1/campuses/{campusId}/coalitions')">
+                <div class="api-row-main">
+                  <div class="path-container" title="Возвращает список трайбов кампуса по ID">
+                    <span class="path-text">/v1/campuses/</span>
+                    <div class="path-param-wrapper">
+                      <input class="api-param-input path-param" data-param-in="path" data-param-name="campusId"
+                        list="list-campusId" name="campusId" placeholder="campusId" required="" type="text"
+                        autocomplete="off" autofill="off" />
+                    </div>
+                    <span class="path-text">/coalitions</span>
+                  </div>
+                  <button class="execute-btn" type="submit">Получить</button>
+                </div>
+                <div class="api-row-params">
+                  <div class="param-field">
+                    <label title="Максимальное количество возвращаемых записей">limit</label>
+                    <input class="api-param-input" data-param-in="query" data-param-name="limit" list="list-limit"
+                      name="limit" placeholder="limit" type="text" value="50" />
+                  </div>
+                  <div class="param-field">
+                    <label title="Количество записей для пропуска (пагинация)">offset</label>
+                    <input class="api-param-input" data-param-in="query" data-param-name="offset" list="list-offset"
+                      name="offset" placeholder="offset" type="text" value="0" />
+                  </div>
+                </div>
+              </form>
+            </div>
+            <div class="api-operation">
+              <form onsubmit="executeRequest(event, 'get', '/v1/campuses/{campusId}/clusters')">
+                <div class="api-row-main">
+                  <div class="path-container" title="Возвращает список кластеров кампуса по ID">
+                    <span class="path-text">/v1/campuses/</span>
+                    <div class="path-param-wrapper">
+                      <input class="api-param-input path-param" data-param-in="path" data-param-name="campusId"
+                        list="list-campusId" name="campusId" placeholder="campusId" required="" type="text"
+                        autocomplete="off" autofill="off" />
+                    </div>
+                    <span class="path-text">/clusters</span>
+                  </div>
+                  <button class="execute-btn" type="submit">Получить</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+        <div class="api-tag-block" id="tag-Cluster">
+          <div class="api-tag-header" onclick="toggleTag(this)">
+            <span class="tag-name">Cluster</span>
+            <span class="toggle-icon">
+              <svg fill="none" height="24" viewbox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                  stroke-width="2"></path>
+              </svg>
+            </span>
+          </div>
+          <div class="api-tag-body">
+            <div class="api-operation">
+              <form onsubmit="executeRequest(event, 'get', '/v1/clusters/{clusterId}/map')">
+                <div class="api-row-main">
+                  <div class="path-param-wrapper">
+                    <input class="api-param-input path-param" data-param-in="path" data-param-name="campusId"
+                      list="list-campusId" name="campusId" placeholder="campusId" required="" type="text"
+                      autocomplete="off" autofill="off" />
+                  </div>
+                  <div class="path-container" title="Возвращает карту кластера">
+                    <span class="path-text">/v1/clusters/</span>
+                    <div class="path-param-wrapper">
+                      <input class="api-param-input path-param" data-param-in="path" data-param-name="clusterId"
+                        list="list-clusterId" name="clusterId" placeholder="clusterId" required="" type="text"
+                        autocomplete="off" autofill="off" />
+                    </div>
+                    <span class="path-text">/map</span>
+                  </div>
+                  <button class="execute-btn" type="submit">Получить</button>
+                </div>
+                <div class="api-row-params">
+                  <div class="param-field">
+                    <label title="Максимальное количество возвращаемых записей">limit</label>
+                    <input class="api-param-input" data-param-in="query" data-param-name="limit" list="list-limit"
+                      name="limit" placeholder="limit" type="text" value="50" />
+                  </div>
+                  <div class="param-field">
+                    <label title="Количество записей для пропуска (пагинация)">offset</label>
+                    <input class="api-param-input" data-param-in="query" data-param-name="offset" list="list-offset"
+                      name="offset" placeholder="offset" type="text" value="0" />
+                  </div>
+                  <div class="param-field">
+                    <label
+                      title="Если true, возвращаются занятые места. Если false - только свободные. Если не указано - все места.">occupied</label>
+                    <input class="api-param-input" data-param-in="query" data-param-name="occupied" list="list-occupied"
+                      name="occupied" placeholder="occupied" type="text" />
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+        <div class="api-tag-block" id="tag-Coalition">
+          <div class="api-tag-header" onclick="toggleTag(this)">
+            <span class="tag-name">Coalition</span>
+            <span class="toggle-icon">
+              <svg fill="none" height="24" viewbox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                  stroke-width="2"></path>
+              </svg>
+            </span>
+          </div>
+          <div class="api-tag-body">
+            <div class="api-operation">
+              <form onsubmit="executeRequest(event, 'get', '/v1/coalitions/{coalitionId}/participants')">
+                <div class="api-row-main">
+                  <div class="path-param-wrapper">
+                    <input class="api-param-input path-param" data-param-in="path" data-param-name="campusId"
+                      list="list-campusId" name="campusId" placeholder="campusId" required="" type="text"
+                      autocomplete="off" autofill="off" />
+                  </div>
+                  <div class="path-container" title="Возвращает список участников трайба по ID">
+                    <span class="path-text">/v1/coalitions/</span>
+                    <div class="path-param-wrapper">
+                      <input class="api-param-input path-param" data-param-in="path" data-param-name="coalitionId"
+                        list="list-coalitionId" name="coalitionId" placeholder="coalitionId" required="" type="text"
+                        autocomplete="off" autofill="off" />
+                    </div>
+                    <span class="path-text">/participants</span>
+                  </div>
+                  <button class="execute-btn" type="submit">Получить</button>
+                </div>
+                <div class="api-row-params">
+                  <div class="param-field">
+                    <label title="Максимальное количество возвращаемых записей">limit</label>
+                    <input class="api-param-input" data-param-in="query" data-param-name="limit" list="list-limit"
+                      name="limit" placeholder="limit" type="text" value="50" />
+                  </div>
+                  <div class="param-field">
+                    <label title="Количество записей для пропуска (пагинация)">offset</label>
+                    <input class="api-param-input" data-param-in="query" data-param-name="offset" list="list-offset"
+                      name="offset" placeholder="offset" type="text" value="0" />
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+        <div class="api-tag-block" id="tag-Course">
+          <div class="api-tag-header" onclick="toggleTag(this)">
+            <span class="tag-name">Course</span>
+            <span class="toggle-icon">
+              <svg fill="none" height="24" viewbox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                  stroke-width="2"></path>
+              </svg>
+            </span>
+          </div>
+          <div class="api-tag-body">
+            <div class="api-operation">
+              <form onsubmit="executeRequest(event, 'get', '/v1/courses/{courseId}')">
+                <div class="api-row-main">
+                  <div class="path-container" title="Возвращает информацию о курсе по ID">
+                    <span class="path-text">/v1/courses/</span>
+                    <div class="path-param-wrapper">
+                      <input class="api-param-input path-param" data-param-in="path" data-param-name="courseId"
+                        list="list-courseId" name="courseId" placeholder="courseId" required="" type="text"
+                        autocomplete="off" autofill="off" />
+                    </div>
+                  </div>
+                  <button class="execute-btn" type="submit">Получить</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+        <div class="api-tag-block" id="tag-Event">
+          <div class="api-tag-header" onclick="toggleTag(this)">
+            <span class="tag-name">Event</span>
+            <span class="toggle-icon">
+              <svg fill="none" height="24" viewbox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                  stroke-width="2"></path>
+              </svg>
+            </span>
+          </div>
+          <div class="api-tag-body">
+            <div class="api-operation">
+              <form onsubmit="executeRequest(event, 'get', '/v1/events')">
+                <div class="api-row-main">
+                  <div class="path-container" title="Возвращает список событий">
+                    <span class="path-text">/v1/events</span>
+                  </div>
+                  <button class="execute-btn" type="submit">Получить</button>
+                </div>
+                <div class="api-row-params">
+                  <div class="param-field">
+                    <label title="Дата и время начала выборки, включительно (в UTC)">from</label>
+                    <input class="api-param-input" data-param-in="query" data-param-name="from" list="list-from"
+                      name="from" placeholder="from" type="datetime-local" value="2026-01-23T00:00" />
+                  </div>
+                  <div class="param-field">
+                    <label title="Дата и время конца выборки, включительно (в UTC)">to</label>
+                    <input class="api-param-input" data-param-in="query" data-param-name="to" list="list-to" name="to"
+                      placeholder="to" type="datetime-local" value="2026-01-24T00:00" />
+                  </div>
+                  <div class="param-field">
+                    <label title="Тип события">type</label>
+                    <input class="api-param-input" data-param-in="query" data-param-name="type" list="list-type"
+                      name="type" placeholder="type" type="text" />
+                  </div>
+                  <div class="param-field">
+                    <label title="Максимальное количество возвращаемых записей">limit</label>
+                    <input class="api-param-input" data-param-in="query" data-param-name="limit" list="list-limit"
+                      name="limit" placeholder="limit" type="text" value="50" />
+                  </div>
+                  <div class="param-field">
+                    <label title="Количество записей для пропуска (пагинация)">offset</label>
+                    <input class="api-param-input" data-param-in="query" data-param-name="offset" list="list-offset"
+                      name="offset" placeholder="offset" type="text" value="0" />
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+        <div class="api-tag-block" id="tag-Graph">
+          <div class="api-tag-header" onclick="toggleTag(this)">
+            <span class="tag-name">Graph</span>
+            <span class="toggle-icon">
+              <svg fill="none" height="24" viewbox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                  stroke-width="2"></path>
+              </svg>
+            </span>
+          </div>
+          <div class="api-tag-body">
+            <div class="api-operation">
+              <form onsubmit="executeRequest(event, 'get', '/v1/graph')">
+                <div class="api-row-main">
+                  <div class="path-container" title="Возвращает карту проектов участника">
+                    <span class="path-text">/v1/graph</span>
+                  </div>
+                  <button class="execute-btn" type="submit">Получить</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+        <div class="api-tag-block" id="tag-Participant">
+          <div class="api-tag-header" onclick="toggleTag(this)">
+            <span class="tag-name">Participant</span>
+            <span class="toggle-icon">
+              <svg fill="none" height="24" viewbox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                  stroke-width="2"></path>
+              </svg>
+            </span>
+          </div>
+          <div class="api-tag-body">
+            <div class="api-operation">
+              <form onsubmit="executeRequest(event, 'get', '/v1/participants/{login}')">
+                <div class="api-row-main">
+                  <div class="path-container" title="Возвращает основную информацию об участнике по логину">
+                    <span class="path-text">/v1/participants/</span>
+                    <div class="path-param-wrapper">
+                      <input class="api-param-input path-param" data-param-in="path" data-param-name="login"
+                        list="list-login" name="login" placeholder="login" required="" type="text" autocomplete="off"
+                        autofill="off" />
+                    </div>
+                  </div>
+                  <button class="execute-btn" type="submit">Получить</button>
+                </div>
+              </form>
+            </div>
+            <div class="api-operation">
+              <form onsubmit="executeRequest(event, 'get', '/v1/participants/{login}/workstation')">
+                <div class="api-row-main">
+                  <div class="path-container" title="Возвращает информацию о рабочем месте участника по логину">
+                    <span class="path-text">/v1/participants/</span>
+                    <div class="path-param-wrapper">
+                      <input class="api-param-input path-param" data-param-in="path" data-param-name="login"
+                        list="list-login" name="login" placeholder="login" required="" type="text" autocomplete="off"
+                        autofill="off" />
+                    </div>
+                    <span class="path-text">/workstation</span>
+                  </div>
+                  <button class="execute-btn" type="submit">Получить</button>
+                </div>
+              </form>
+            </div>
+            <div class="api-operation">
+              <form onsubmit="executeRequest(event, 'get', '/v1/participants/{login}/skills')">
+                <div class="api-row-main">
+                  <div class="path-container" title="Возвращает очки навыков участника по логину">
+                    <span class="path-text">/v1/participants/</span>
+                    <div class="path-param-wrapper">
+                      <input class="api-param-input path-param" data-param-in="path" data-param-name="login"
+                        list="list-login" name="login" placeholder="login" required="" type="text" autocomplete="off"
+                        autofill="off" />
+                    </div>
+                    <span class="path-text">/skills</span>
+                  </div>
+                  <button class="execute-btn" type="submit">Получить</button>
+                </div>
+              </form>
+            </div>
+            <div class="api-operation">
+              <form onsubmit="executeRequest(event, 'get', '/v1/participants/{login}/projects')">
+                <div class="api-row-main">
+                  <div class="path-container" title="Возвращает информацию о проектах участника по логину">
+                    <span class="path-text">/v1/participants/</span>
+                    <div class="path-param-wrapper">
+                      <input class="api-param-input path-param" data-param-in="path" data-param-name="login"
+                        list="list-login" name="login" placeholder="login" required="" type="text" autocomplete="off"
+                        autofill="off" />
+                    </div>
+                    <span class="path-text">/projects</span>
+                  </div>
+                  <button class="execute-btn" type="submit">Получить</button>
+                </div>
+                <div class="api-row-params">
+                  <div class="param-field">
+                    <label title="Максимальное количество возвращаемых записей">limit</label>
+                    <input class="api-param-input" data-param-in="query" data-param-name="limit" list="list-limit"
+                      name="limit" placeholder="limit" type="text" value="10" />
+                  </div>
+                  <div class="param-field">
+                    <label title="Количество записей для пропуска (пагинация)">offset</label>
+                    <input class="api-param-input" data-param-in="query" data-param-name="offset" list="list-offset"
+                      name="offset" placeholder="offset" type="text" value="0" />
+                  </div>
+                  <div class="param-field">
+                    <label title="Статус проекта">status</label>
+                    <input class="api-param-input" data-param-in="query" data-param-name="status" list="list-status"
+                      name="status" placeholder="status" type="text" />
+                  </div>
+                </div>
+              </form>
+            </div>
+            <div class="api-operation">
+              <form onsubmit="executeRequest(event, 'get', '/v1/participants/{login}/projects/{projectId}')">
+                <div class="api-row-main">
+                  <div class="path-container" title="Возвращает информацию о проекте участника по ID">
+                    <span class="path-text">/v1/participants/</span>
+                    <div class="path-param-wrapper">
+                      <input class="api-param-input path-param" data-param-in="path" data-param-name="login"
+                        list="list-login" name="login" placeholder="login" required="" type="text" autocomplete="off"
+                        autofill="off" />
+                    </div>
+                    <span class="path-text">/projects/</span>
+                    <div class="path-param-wrapper">
+                      <input class="api-param-input path-param" data-param-in="path" data-param-name="projectId"
+                        list="list-projectId" name="projectId" placeholder="projectId" required="" type="text"
+                        autocomplete="off" autofill="off" />
+                    </div>
+                  </div>
+                  <button class="execute-btn" type="submit">Получить</button>
+                </div>
+              </form>
+            </div>
+            <div class="api-operation">
+              <form onsubmit="executeRequest(event, 'get', '/v1/participants/{login}/points')">
+                <div class="api-row-main">
+                  <div class="path-container" title="Возвращает информацию об очках участника по логину">
+                    <span class="path-text">/v1/participants/</span>
+                    <div class="path-param-wrapper">
+                      <input class="api-param-input path-param" data-param-in="path" data-param-name="login"
+                        list="list-login" name="login" placeholder="login" required="" type="text" autocomplete="off"
+                        autofill="off" />
+                    </div>
+                    <span class="path-text">/points</span>
+                  </div>
+                  <button class="execute-btn" type="submit">Получить</button>
+                </div>
+              </form>
+            </div>
+            <div class="api-operation">
+              <form onsubmit="executeRequest(event, 'get', '/v1/participants/{login}/logtime')">
+                <div class="api-row-main">
+                  <div class="path-container" title="Возвращает среднее время в системе за неделю по логину">
+                    <span class="path-text">/v1/participants/</span>
+                    <div class="path-param-wrapper">
+                      <input class="api-param-input path-param" data-param-in="path" data-param-name="login"
+                        list="list-login" name="login" placeholder="login" required="" type="text" autocomplete="off"
+                        autofill="off" />
+                    </div>
+                    <span class="path-text">/logtime</span>
+                  </div>
+                  <button class="execute-btn" type="submit">Получить</button>
+                </div>
+                <div class="api-row-params">
+                  <div class="param-field">
+                    <label title="Дата. Среднее время будет рассчитано для недели, включающей эту дату">date</label>
+                    <input class="api-param-input" data-param-in="query" data-param-name="date" list="list-date"
+                      name="date" placeholder="date" type="date" />
+                  </div>
+                </div>
+              </form>
+            </div>
+            <div class="api-operation">
+              <form onsubmit="executeRequest(event, 'get', '/v1/participants/{login}/feedback')">
+                <div class="api-row-main">
+                  <div class="path-container" title="Возвращает средние баллы обратной связи участника по логину">
+                    <span class="path-text">/v1/participants/</span>
+                    <div class="path-param-wrapper">
+                      <input class="api-param-input path-param" data-param-in="path" data-param-name="login"
+                        list="list-login" name="login" placeholder="login" required="" type="text" autocomplete="off"
+                        autofill="off" />
+                    </div>
+                    <span class="path-text">/feedback</span>
+                  </div>
+                  <button class="execute-btn" type="submit">Получить</button>
+                </div>
+              </form>
+            </div>
+            <div class="api-operation">
+              <form onsubmit="executeRequest(event, 'get', '/v1/participants/{login}/experience-history')">
+                <div class="api-row-main">
+                  <div class="path-container" title="Возвращает историю начисления XP участника по логину">
+                    <span class="path-text">/v1/participants/</span>
+                    <div class="path-param-wrapper">
+                      <input class="api-param-input path-param" data-param-in="path" data-param-name="login"
+                        list="list-login" name="login" placeholder="login" required="" type="text" autocomplete="off"
+                        autofill="off" />
+                    </div>
+                    <span class="path-text">/experience-history</span>
+                  </div>
+                  <button class="execute-btn" type="submit">Получить</button>
+                </div>
+                <div class="api-row-params">
+                  <div class="param-field">
+                    <label title="Максимальное количество возвращаемых записей">limit</label>
+                    <input class="api-param-input" data-param-in="query" data-param-name="limit" list="list-limit"
+                      name="limit" placeholder="limit" type="text" value="50" />
+                  </div>
+                  <div class="param-field">
+                    <label title="Количество записей для пропуска (пагинация)">offset</label>
+                    <input class="api-param-input" data-param-in="query" data-param-name="offset" list="list-offset"
+                      name="offset" placeholder="offset" type="text" value="0" />
+                  </div>
+                </div>
+              </form>
+            </div>
+            <div class="api-operation">
+              <form onsubmit="executeRequest(event, 'get', '/v1/participants/{login}/courses')">
+                <div class="api-row-main">
+                  <div class="path-container" title="Возвращает информацию о курсах участника по логину">
+                    <span class="path-text">/v1/participants/</span>
+                    <div class="path-param-wrapper">
+                      <input class="api-param-input path-param" data-param-in="path" data-param-name="login"
+                        list="list-login" name="login" placeholder="login" required="" type="text" autocomplete="off"
+                        autofill="off" />
+                    </div>
+                    <span class="path-text">/courses</span>
+                  </div>
+                  <button class="execute-btn" type="submit">Получить</button>
+                </div>
+                <div class="api-row-params">
+                  <div class="param-field">
+                    <label title="Максимальное количество возвращаемых записей">limit</label>
+                    <input class="api-param-input" data-param-in="query" data-param-name="limit" list="list-limit"
+                      name="limit" placeholder="limit" type="text" value="10" />
+                  </div>
+                  <div class="param-field">
+                    <label title="Количество записей для пропуска (пагинация)">offset</label>
+                    <input class="api-param-input" data-param-in="query" data-param-name="offset" list="list-offset"
+                      name="offset" placeholder="offset" type="text" value="0" />
+                  </div>
+                  <div class="param-field">
+                    <label title="Статус курса">status</label>
+                    <input class="api-param-input" data-param-in="query" data-param-name="status" list="list-status"
+                      name="status" placeholder="status" type="text" />
+                  </div>
+                </div>
+              </form>
+            </div>
+            <div class="api-operation">
+              <form onsubmit="executeRequest(event, 'get', '/v1/participants/{login}/courses/{courseId}')">
+                <div class="api-row-main">
+                  <div class="path-container" title="Возвращает информацию о курсе участника по ID">
+                    <span class="path-text">/v1/participants/</span>
+                    <div class="path-param-wrapper">
+                      <input class="api-param-input path-param" data-param-in="path" data-param-name="login"
+                        list="list-login" name="login" placeholder="login" required="" type="text" autocomplete="off"
+                        autofill="off" />
+                    </div>
+                    <span class="path-text">/courses/</span>
+                    <div class="path-param-wrapper">
+                      <input class="api-param-input path-param" data-param-in="path" data-param-name="courseId"
+                        list="list-courseId" name="courseId" placeholder="courseId" required="" type="text"
+                        autocomplete="off" autofill="off" />
+                    </div>
+                  </div>
+                  <button class="execute-btn" type="submit">Получить</button>
+                </div>
+              </form>
+            </div>
+            <div class="api-operation">
+              <form onsubmit="executeRequest(event, 'get', '/v1/participants/{login}/coalition')">
+                <div class="api-row-main">
+                  <div class="path-container" title="Возвращает информацию о коалиции участника по логину">
+                    <span class="path-text">/v1/participants/</span>
+                    <div class="path-param-wrapper">
+                      <input class="api-param-input path-param" data-param-in="path" data-param-name="login"
+                        list="list-login" name="login" placeholder="login" required="" type="text" autocomplete="off"
+                        autofill="off" />
+                    </div>
+                    <span class="path-text">/coalition</span>
+                  </div>
+                  <button class="execute-btn" type="submit">Получить</button>
+                </div>
+              </form>
+            </div>
+            <div class="api-operation">
+              <form onsubmit="executeRequest(event, 'get', '/v1/participants/{login}/badges')">
+                <div class="api-row-main">
+                  <div class="path-container" title="Возвращает список значков участника по логину">
+                    <span class="path-text">/v1/participants/</span>
+                    <div class="path-param-wrapper">
+                      <input class="api-param-input path-param" data-param-in="path" data-param-name="login"
+                        list="list-login" name="login" placeholder="login" required="" type="text" autocomplete="off"
+                        autofill="off" />
+                    </div>
+                    <span class="path-text">/badges</span>
+                  </div>
+                  <button class="execute-btn" type="submit">Получить</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+        <div class="api-tag-block" id="tag-Project">
+          <div class="api-tag-header" onclick="toggleTag(this)">
+            <span class="tag-name">Project</span>
+            <span class="toggle-icon">
+              <svg fill="none" height="24" viewbox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                  stroke-width="2"></path>
+              </svg>
+            </span>
+          </div>
+          <div class="api-tag-body">
+            <div class="api-operation">
+              <form onsubmit="executeRequest(event, 'get', '/v1/projects/{projectId}')">
+                <div class="api-row-main">
+                  <div class="path-container" title="Возвращает информацию о проекте по ID">
+                    <span class="path-text">/v1/projects/</span>
+                    <div class="path-param-wrapper">
+                      <input class="api-param-input path-param" data-param-in="path" data-param-name="projectId"
+                        list="list-projectId" name="projectId" placeholder="projectId" required="" type="text"
+                        autocomplete="off" autofill="off" />
+                    </div>
+                  </div>
+                  <button class="execute-btn" type="submit">Получить</button>
+                </div>
+              </form>
+            </div>
+            <div class="api-operation">
+              <form onsubmit="executeRequest(event, 'get', '/v1/projects/{projectId}/participants')">
+                <div class="api-row-main">
+                  <div class="path-container" title="Возвращает список участников по ID проекта">
+                    <span class="path-text">/v1/projects/</span>
+                    <div class="path-param-wrapper">
+                      <input class="api-param-input path-param" data-param-in="path" data-param-name="projectId"
+                        list="list-projectId" name="projectId" placeholder="projectId" required="" type="text"
+                        autocomplete="off" autofill="off" />
+                    </div>
+                    <span class="path-text">/participants</span>
+                  </div>
+                  <button class="execute-btn" type="submit">Получить</button>
+                </div>
+                <div class="api-row-params">
+                  <div class="param-field">
+                    <label title="Максимальное количество возвращаемых записей">limit</label>
+                    <input class="api-param-input" data-param-in="query" data-param-name="limit" list="list-limit"
+                      name="limit" placeholder="limit" type="text" value="50" />
+                  </div>
+                  <div class="param-field">
+                    <label title="Количество записей для пропуска (пагинация)">offset</label>
+                    <input class="api-param-input" data-param-in="query" data-param-name="offset" list="list-offset"
+                      name="offset" placeholder="offset" type="text" value="0" />
+                  </div>
+                  <div class="param-field">
+                    <label title="Статус проекта">status</label>
+                    <input class="api-param-input" data-param-in="query" data-param-name="status" list="list-status"
+                      name="status" placeholder="status" type="text" />
+                  </div>
+                  <div class="param-field">
+                    <label title="ID кампуса">campusId</label>
+                    <input class="api-param-input" data-param-in="query" data-param-name="campusId" list="list-campusId"
+                      name="campusId" placeholder="campusId" type="text" autocomplete="off" autofill="off" />
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+        <div class="api-tag-block" id="tag-Sale">
+          <div class="api-tag-header" onclick="toggleTag(this)">
+            <span class="tag-name">Sale</span>
+            <span class="toggle-icon">
+              <svg fill="none" height="24" viewbox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                  stroke-width="2"></path>
+              </svg>
+            </span>
+          </div>
+          <div class="api-tag-body">
+            <div class="api-operation">
+              <form onsubmit="executeRequest(event, 'get', '/v1/sales')">
+                <div class="api-row-main">
+                  <div class="path-container" title="Возвращает текущие статусы распродаж в параллели">
+                    <span class="path-text">/v1/sales</span>
+                  </div>
+                  <button class="execute-btn" type="submit">Получить</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="right-column" id="results-panel">
+        <h3 style="
+              margin-top: 0;
+              position: sticky;
+              top: 0;
+              background: #1d222c;
+              padding: 10px 0;
+              z-index: 10;
+            ">
+          Результат
+        </h3>
+        <div id="api-result-content"></div>
+      </div>
+      <div class="sidebar" id="buffer-sidebar" style="display: none">
+        <div class="sidebar-toggle" id="sidebar-toggle">
+          <span>◀</span>
+        </div>
+        <div class="event-header">
+          <h3>В памяти</h3>
+        </div>
+        <div class="log-container" id="buffer-list" style="padding: 20px">Ничего нет</div>
+      </div>
+    </div>
+    <footer class="page-footer">
+      <div class="footer-left">
+        <svg fill="#7D838E" height="15" viewbox="0 0 18 15" width="18">
+          <path
+            d="M12.5 0C15.538 0 18 2.462 18 5.5V15H5v-3h10V9H5V6h10v-.5C15 4.119 13.881 3 12.5 3H5V0h7.5zM0 3h3v3H0zm0 6h3v3H0z">
+          </path>
+        </svg>
+        <span class="motto"><a href="https://github.com/rafikov/watchman">Вахтёр</a> сидит на гите</span>
+      </div>
+    </footer>
+  </div>
+  <div id="status-message"></div>
+  <script>
+    const API_BASE_URL =
+      "https://platform.21-school.ru/services/21-school/api";
+    let buffer = [];
+    let cachedData = {
+      campuses: [],
+      clustersByCampus: {},
+      coalitionsByCampus: {},
+      loginsByCampus: {},
+      projectsByLogin: {},
+      coursesByLogin: {},
+      clusters: [],
+      coalitions: [],
+      logins: [],
+      projects: [],
+      courses: [],
+    };
+
+    const mainGrid = document.getElementById("main-grid");
+    const resultsPanel = document.getElementById("api-result-content");
+    const bufferSidebar = document.getElementById("buffer-sidebar");
+    const sidebarToggle = document.getElementById("sidebar-toggle");
+    const bufferList = document.getElementById("buffer-list");
+    const statusMessage = document.getElementById("status-message");
+    const showStatus = createStatusHandler(statusMessage, { setColor: false });
+
+    bufferSidebar.style.display = "flex";
+
+    sidebarToggle.addEventListener("click", () => {
+      bufferSidebar.classList.toggle("visible");
+      sidebarToggle.querySelector("span").textContent =
+        bufferSidebar.classList.contains("visible") ? "▶" : "◀";
+    });
+
+    const html = {
+      escape: (str) => {
+        return String(str)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#039;");
+      },
+    };
+
+    function loadBuffer() {
+      try {
+        const saved = localStorage.getItem("watchman_buffer");
+        if (saved) buffer = JSON.parse(saved);
+      } catch (e) { }
+      renderBuffer();
+      populateAllInputs();
+    }
+
+    function saveBuffer() {
+      localStorage.setItem("watchman_buffer", JSON.stringify(buffer));
+      renderBuffer();
+      populateAllInputs();
+    }
+
+    function addToBuffer(value, key = "", description = "") {
+      const strVal = String(value);
+      if (buffer.some((item) => item.value === strVal)) {
+        showStatus("Значение уже в памяти");
+        return;
+      }
+
+      let desc = description || key || "Значение";
+
+      if (!description && key.toLowerCase().includes("campus")) {
+        const c = cachedData.campuses.find((x) => x.id === strVal);
+        if (c) desc = c.fullName || c.shortName || c.name;
+      }
+
+      buffer.unshift({
+        id: Date.now().toString(),
+        value: strVal,
+        description: desc,
+        key: key,
+      });
+      saveBuffer();
+      showStatus("Добавлено в память");
+    }
+
+    function renderBuffer() {
+      bufferList.innerHTML = "";
+      buffer.forEach((item) => {
+        const div = document.createElement("div");
+        div.className = "buffer-item";
+        div.innerHTML = `
+                <div class="buffer-info">
+                    <input type="text" class="buffer-desc" value="${item.description}" onchange="updateBufferDesc('${item.id}', this.value)">
+                    <div class="buffer-value" title="${item.value}">${item.value}</div>
+                </div>
+                <button class="buffer-delete" onclick="removeFromBuffer('${item.id}')">&times;</button>
+            `;
+        bufferList.appendChild(div);
+      });
+    }
+
+    window.removeFromBuffer = (id) => {
+      buffer = buffer.filter((x) => x.id !== id);
+      saveBuffer();
+    };
+
+    window.updateBufferDesc = (id, desc) => {
+      const item = buffer.find((x) => x.id === id);
+      if (item) {
+        item.description = desc;
+        saveBuffer();
+      }
+    };
+
+    function loadCache() {
+      try {
+        const saved = localStorage.getItem("watchman_cache");
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Date.now() - parsed.timestamp < 7 * 24 * 60 * 60 * 1000) {
+            cachedData = parsed.data;
+            if (!cachedData.campuses || cachedData.campuses.length === 0) {
+              refreshCache();
+            }
+          } else {
+            refreshCache();
+          }
+        } else {
+          refreshCache();
+        }
+      } catch (e) {
+        refreshCache();
+      }
+      populateAllInputs();
+    }
+
+    async function refreshCache() {
+      document.getElementById("cache-status").textContent = "Обновление...";
+      try {
+        const token = await getAccessToken();
+
+        const campRes = await fetch(`${API_BASE_URL}/v1/campuses?limit=100`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (campRes.ok) {
+          const data = await campRes.json();
+          cachedData.campuses = data.campuses || [];
+        }
+
+        localStorage.setItem(
+          "watchman_cache",
+          JSON.stringify({
+            data: cachedData,
+            timestamp: Date.now(),
+          })
+        );
+
+        document.getElementById("cache-status").textContent = "Кэш обновлен";
+        setTimeout(
+          () =>
+            (document.getElementById("cache-status").textContent = "Кэш: OK"),
+          2000
+        );
+        populateAllInputs();
+      } catch (e) {
+        console.error(e);
+        document.getElementById("cache-status").textContent = "Ошибка кэша";
+      }
+    }
+
+    document
+      .getElementById("refresh-cache-btn")
+      .addEventListener("click", refreshCache);
+
+    function saveCache() {
+      localStorage.setItem(
+        "watchman_cache",
+        JSON.stringify({
+          data: cachedData,
+          timestamp: Date.now(),
+        })
+      );
+    }
+
+    function uniqueBy(items, getId) {
+      const map = new Map();
+      items.forEach((item) => {
+        const id = getId(item);
+        if (id !== undefined && id !== null) {
+          map.set(String(id), item);
+        }
+      });
+      return Array.from(map.values());
+    }
+
+    function collectPreferredCampusIds() {
+      const ids = new Set();
+      buffer.forEach((b) => {
+        if (b.key && b.key.toLowerCase().includes("campus")) ids.add(b.value);
+      });
+      document
+        .querySelectorAll('[data-param-name="campusId"]')
+        .forEach((el) => {
+          if (el.value) ids.add(el.value);
+        });
+      if (ids.size === 0 && cachedData.campuses.length > 0) {
+        ids.add(cachedData.campuses[0].id);
+      }
+      return Array.from(ids).slice(0, 5);
+    }
+
+    function collectPreferredLogins() {
+      const logins = new Set();
+      buffer.forEach((b) => {
+        if (b.key && b.key.toLowerCase().includes("login"))
+          logins.add(b.value);
+      });
+      document.querySelectorAll('[data-param-name="login"]').forEach((el) => {
+        if (el.value) logins.add(el.value);
+      });
+      return Array.from(logins).slice(0, 10);
+    }
+
+    async function fetchJson(url) {
+      const token = await getAccessToken();
+      const res = await fetch(url, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) return null;
+      return res.json();
+    }
+
+    async function ensureCampusData(campusId) {
+      if (!campusId) return;
+      const clusterPromise = cachedData.clustersByCampus[campusId]
+        ? null
+        : fetchJson(`${API_BASE_URL}/v1/campuses/${campusId}/clusters`);
+      const coalitionPromise = cachedData.coalitionsByCampus[campusId]
+        ? null
+        : fetchJson(
+          `${API_BASE_URL}/v1/campuses/${campusId}/coalitions?limit=1000`
+        );
+
+      const [clustersData, coalitionsData] = await Promise.all([
+        clusterPromise,
+        coalitionPromise,
+      ]);
+
+      if (clustersData && Array.isArray(clustersData.clusters)) {
+        cachedData.clustersByCampus[campusId] = clustersData.clusters;
+      }
+      if (coalitionsData && Array.isArray(coalitionsData.coalitions)) {
+        cachedData.coalitionsByCampus[campusId] = coalitionsData.coalitions;
+      }
+
+      const clusters = Object.values(cachedData.clustersByCampus).flat();
+      const coalitions = Object.values(cachedData.coalitionsByCampus).flat();
+
+      cachedData.clusters = uniqueBy(clusters, (x) => x.id);
+      cachedData.coalitions = uniqueBy(coalitions, (x) => x.coalitionId);
+    }
+
+    async function ensureLoginData(login) {
+      if (!login) return;
+      const projectPromise = cachedData.projectsByLogin[login]
+        ? null
+        : fetchJson(
+          `${API_BASE_URL}/v1/participants/${login}/projects?limit=1000`
+        );
+      const coursePromise = cachedData.coursesByLogin[login]
+        ? null
+        : fetchJson(
+          `${API_BASE_URL}/v1/participants/${login}/courses?limit=1000`
+        );
+      const [projectsData, coursesData] = await Promise.all([
+        projectPromise,
+        coursePromise,
+      ]);
+
+      if (projectsData && Array.isArray(projectsData.projects)) {
+        cachedData.projectsByLogin[login] = projectsData.projects;
+      }
+      if (coursesData && Array.isArray(coursesData.courses)) {
+        cachedData.coursesByLogin[login] = coursesData.courses;
+      }
+
+      const projects = Object.values(cachedData.projectsByLogin).flat();
+      const courses = Object.values(cachedData.coursesByLogin).flat();
+
+      cachedData.projects = uniqueBy(projects, (x) => x.id || x.projectId);
+      cachedData.courses = uniqueBy(courses, (x) => x.id || x.courseId);
+    }
+
+    function bindTagHeaders() {
+      document.querySelectorAll(".api-tag-header").forEach((header) => {
+        header.removeAttribute("onclick");
+        header.addEventListener("click", () => window.toggleTag(header));
+      });
+    }
+
+    function bindDynamicSelects() {
+      document
+        .querySelectorAll('input[data-param-name="campusId"]')
+        .forEach((input) => {
+          input.addEventListener("change", async (e) => {
+            document
+              .querySelectorAll(
+                'input[data-param-name="clusterId"], input[data-param-name="coalitionId"]'
+              )
+              .forEach((el) => (el.value = ""));
+
+            await ensureCampusData(e.target.value);
+            saveCache();
+            populateAllInputs(e.target.value);
+          });
+        });
+      document
+        .querySelectorAll('input[data-param-name="login"]')
+        .forEach((input) => {
+          input.addEventListener("change", async (e) => {
+            await ensureLoginData(e.target.value);
+            saveCache();
+            populateAllInputs();
+          });
+        });
+    }
+
+    function populateAllInputs(preferredCampusId = null) {
+      const paramTypes = [
+        "campusId",
+        "clusterId",
+        "coalitionId",
+        "courseId",
+        "login",
+        "projectId",
+        "limit",
+        "offset",
+        "status",
+        "occupied",
+        "type",
+      ];
+
+      paramTypes.forEach((type) => {
+        let dl = document.getElementById(`list-${type}`);
+        if (!dl) {
+          dl = document.createElement("datalist");
+          dl.id = `list-${type}`;
+          document.body.appendChild(dl);
+        }
+
+        const options = [];
+        const addedValues = new Set();
+
+        buffer.forEach((b) => {
+          const n = type.toLowerCase();
+          const k = (b.key || "").toLowerCase();
+
+          let isMatch = false;
+          if (n === k) isMatch = true;
+          else if (n.includes("campus") && k.includes("campus"))
+            isMatch = true;
+          else if (n.includes("project") && k.includes("project"))
+            isMatch = true;
+          else if (n.includes("course") && k.includes("course"))
+            isMatch = true;
+          else if (n.includes("cluster") && k.includes("cluster"))
+            isMatch = true;
+          else if (n.includes("coalition") && k.includes("coalition"))
+            isMatch = true;
+          else if (n === "login" && k === "login") isMatch = true;
+
+          if (isMatch && !addedValues.has(String(b.value))) {
+            options.push(
+              `<option value="${b.value}">*&nbsp;${b.description}</option>`
+            );
+            addedValues.add(String(b.value));
+          }
+        });
+
+        if (type === "campusId" && cachedData.campuses) {
+          cachedData.campuses.forEach((c) => {
+            if (
+              !addedValues.has(String(c.id)) &&
+              !IGNORED_CAMPUSES.has(c.id)
+            ) {
+              let name = c.fullName || c.name;
+              if (name.startsWith("Школа 21, ")) {
+                name = name.substring(10);
+              }
+              options.push(`<option value="${c.id}">${name}</option>`);
+              addedValues.add(String(c.id));
+            }
+          });
+        } else if (type === "clusterId") {
+          let allClusters;
+          if (
+            preferredCampusId &&
+            cachedData.clustersByCampus[preferredCampusId]
+          ) {
+            allClusters = cachedData.clustersByCampus[preferredCampusId];
+          } else {
+            allClusters = [
+              ...(cachedData.clusters || []),
+              ...Object.values(cachedData.clustersByCampus || {}).flat(),
+            ];
+          }
+          allClusters.forEach((c) => {
+            if (!addedValues.has(String(c.id))) {
+              options.push(
+                `<option value="${c.id}">${c.name || c.id}</option>`
+              );
+              addedValues.add(String(c.id));
+            }
+          });
+        } else if (type === "coalitionId") {
+          let allCoalitions;
+          if (
+            preferredCampusId &&
+            cachedData.coalitionsByCampus[preferredCampusId]
+          ) {
+            allCoalitions = cachedData.coalitionsByCampus[preferredCampusId];
+          } else {
+            allCoalitions = [
+              ...(cachedData.coalitions || []),
+              ...Object.values(cachedData.coalitionsByCampus || {}).flat(),
+            ];
+          }
+          allCoalitions.forEach((c) => {
+            if (!addedValues.has(String(c.coalitionId))) {
+              options.push(
+                `<option value="${c.coalitionId}">${c.name || c.coalitionId
+                }</option>`
+              );
+              addedValues.add(String(c.coalitionId));
+            }
+          });
+        } else if (type === "login") {
+          const allLogins = [
+            ...(cachedData.logins || []),
+            ...Object.values(cachedData.loginsByCampus || {}).flat(),
+          ];
+          allLogins.forEach((l) => {
+            if (!addedValues.has(String(l))) {
+              options.push(`<option value="${l}">${l}</option>`);
+              addedValues.add(String(l));
+            }
+          });
+        } else if (type === "projectId") {
+          const projects = [
+            ...(cachedData.projects || []),
+            ...Object.values(cachedData.projectsByLogin || {}).flat(),
+          ];
+          projects.forEach((p) => {
+            const val = String(p.id || p.projectId);
+            if (!addedValues.has(val)) {
+              options.push(
+                `<option value="${val}">${p.title || val}</option>`
+              );
+              addedValues.add(val);
+            }
+          });
+        } else if (type === "courseId") {
+          const courses = [
+            ...(cachedData.courses || []),
+            ...Object.values(cachedData.coursesByLogin || {}).flat(),
+          ];
+          courses.forEach((c) => {
+            const val = String(c.id || c.courseId);
+            if (!addedValues.has(val)) {
+              options.push(
+                `<option value="${val}">${c.title || val}</option>`
+              );
+              addedValues.add(val);
+            }
+          });
+        } else if (type === "status") {
+          [
+            "ASSIGNED",
+            "REGISTERED",
+            "IN_PROGRESS",
+            "IN_REVIEWS",
+            "ACCEPTED",
+            "FAILED",
+          ].forEach((s) => {
+            if (!addedValues.has(s)) {
+              options.push(`<option value="${s}">${s}</option>`);
+              addedValues.add(s);
+            }
+          });
+        } else if (type === "occupied") {
+          ["true", "false"].forEach((s) => {
+            if (!addedValues.has(s)) {
+              options.push(`<option value="${s}">${s}</option>`);
+              addedValues.add(s);
+            }
+          });
+        } else if (type === "type") {
+          ["ACTIVITY", "EXAM", "TEST"].forEach((s) => {
+            if (!addedValues.has(s)) {
+              options.push(`<option value="${s}">${s}</option>`);
+              addedValues.add(s);
+            }
+          });
+        }
+
+        dl.innerHTML = options.join("");
+      });
+
+      document.querySelectorAll("input.api-param-input").forEach((input) => {
+        const name = input.dataset.paramName;
+        if (name) {
+          input.setAttribute("list", `list-${name}`);
+          if (!input.placeholder) input.placeholder = name;
+        }
+      });
+    }
+
+    window.toggleTag = (header) => {
+      const block = header.closest(".api-tag-block");
+      block.classList.toggle("expanded");
+
+      const icon = header.querySelector(".toggle-icon svg");
+      if (icon) {
+        icon.style.transition = "transform 0.3s";
+        icon.style.transform = block.classList.contains("expanded")
+          ? "rotate(180deg)"
+          : "rotate(0deg)";
+      }
+    };
+
+    window.toggleBlock = (header) => {
+      header.parentElement.classList.toggle("expanded");
+    };
+
+    window.executeRequest = async (e, method, path) => {
+      e.preventDefault();
+      const form = e.target;
+      const formData = new FormData(form);
+
+      let url = API_BASE_URL + path;
+      const queryParams = [];
+
+      const interestingParams = ["campusId", "login", "projectId", "courseId"];
+      const foundParams = [];
+
+      for (const [key, value] of formData.entries()) {
+        if (value === "") continue;
+
+        if (interestingParams.includes(key)) {
+          foundParams.push({
+            key,
+            value
+          });
+        }
+
+        if (url.includes(`{${key}}`)) {
+          url = url.replace(`{${key}}`, encodeURIComponent(value));
+        } else {
+          let encodedValue = encodeURIComponent(value);
+
+          if (
+            (key === "from" || key === "to") &&
+            /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(value)
+          ) {
+            encodedValue = encodeURIComponent(value + ":00Z");
+          }
+
+          queryParams.push(`${key}=${encodedValue}`);
+        }
+      }
+
+      if (queryParams.length > 0 && method.toUpperCase() === "GET") {
+        url += "?" + queryParams.join("&");
+      }
+
+      mainGrid.classList.add("has-results");
+      resultsPanel.innerHTML = '<div style="color: #888;">Загрузка...</div>';
+
+      try {
+        const token = await getAccessToken();
+        const res = await fetch(url, {
+          method: method,
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+
+        let content;
+        const contentType = res.headers.get("content-type");
+        if (contentType && contentType.includes("application/json")) {
+          const data = await res.json();
+          content = renderJSON(data, "", null, path);
+        } else {
+          content = await res.text();
+        }
+
+        let missingBufferHtml = "";
+        const missing = foundParams.filter(
+          (p) => !buffer.some((b) => b.value === String(p.value))
+        );
+
+        if (missing.length > 0) {
+          const items = missing
+            .map((p) => {
+              let desc = p.value;
+              if (p.key === "campusId") {
+                const c = cachedData.campuses.find(
+                  (x) => String(x.id) === String(p.value)
+                );
+                if (c) desc = c.fullName || c.name;
+              } else if (p.key === "projectId") {
+                const projects = [
+                  ...(cachedData.projects || []),
+                  ...Object.values(cachedData.projectsByLogin || {}).flat(),
+                ];
+                const proj = projects.find(
+                  (x) =>
+                    String(x.id) === String(p.value) ||
+                    String(x.projectId) === String(p.value)
+                );
+                if (proj) desc = proj.title || desc;
+              } else if (p.key === "courseId") {
+                const courses = [
+                  ...(cachedData.courses || []),
+                  ...Object.values(cachedData.coursesByLogin || {}).flat(),
+                ];
+                const course = courses.find(
+                  (x) =>
+                    String(x.id) === String(p.value) ||
+                    String(x.courseId) === String(p.value)
+                );
+                if (course) desc = course.title || desc;
+              }
+
+              const displayVal =
+                desc !== p.value
+                  ? p.key === "campusId"
+                    ? desc
+                    : `${desc} (${p.value})`
+                  : p.value;
+
+              return `
+                    <div class="missing-buffer-item">
+                        <span class="missing-buffer-value" title="${html.escape(
+                p.value
+              )}">${html.escape(displayVal)}</span>
+                        <button class="buffer-btn" onclick="addToBuffer('${html.escape(
+                p.value
+              )}', '${p.key}', '${html.escape(desc)}')">В память</button>
+                    </div>
+                `;
+            })
+            .join("");
+
+          missingBufferHtml = `
+                <div class="missing-buffer-container">
+                    ${items}
+                </div>
+            `;
+        }
+
+        resultsPanel.innerHTML = `
+                <div class="result-query">${url.replace(
+          API_BASE_URL,
+          ""
+        )}</div>
+                ${missingBufferHtml}
+                <div class="result-status" style="color: ${res.ok ? "#69e490" : "#eb5757"
+          }">Status: ${res.status}</div>
+                <div class="json-viewer">${content}</div>
+            `;
+      } catch (err) {
+        resultsPanel.innerHTML = `<div style="color: #eb5757">Error: ${err.message}</div>`;
+      }
+    };
+
+    function renderJSON(
+      data,
+      currentKey = "",
+      parentObj = null,
+      contextPath = ""
+    ) {
+      if (data === null) return '<span class="json-null">null</span>';
+      if (typeof data === "boolean")
+        return `<span class="json-boolean">${data}</span>`;
+      if (typeof data === "number" || typeof data === "string") {
+        const isString = typeof data === "string";
+        const strData = String(data);
+        const isUUID =
+          isString &&
+          /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+            data
+          );
+
+        const interestingKeys = [
+          "campusId",
+          "coalitionId",
+          "clusterId",
+          "courseId",
+          "projectId",
+          "login",
+        ];
+
+        let btn = "";
+        let keyToUse = currentKey;
+
+        if (currentKey === "id" && contextPath) {
+          if (contextPath.includes("/clusters")) keyToUse = "clusterId";
+          else if (contextPath.includes("/coalitions"))
+            keyToUse = "coalitionId";
+          else if (contextPath.includes("/courses")) keyToUse = "courseId";
+          else if (contextPath.includes("/projects")) keyToUse = "projectId";
+          else if (contextPath.includes("/graph")) keyToUse = "projectId";
+          else if (
+            contextPath.includes("/campuses") &&
+            !contextPath.includes("/participants")
+          )
+            keyToUse = "campusId";
+        }
+
+        if (
+          interestingKeys.includes(keyToUse) ||
+          (isUUID && currentKey === "id")
+        ) {
+          let desc = "";
+          if (parentObj) {
+            if (
+              keyToUse === "campusId" ||
+              contextPath.includes("/campuses")
+            ) {
+              desc =
+                parentObj.fullName || parentObj.shortName || parentObj.name;
+            } else {
+              desc =
+                parentObj.title ||
+                parentObj.name ||
+                parentObj.label ||
+                parentObj.login;
+            }
+          } else if (keyToUse === "login") {
+            desc = strData;
+          }
+
+          btn = `<button class="buffer-btn" onclick="addToBuffer('${html.escape(
+            strData
+          )}', '${keyToUse}', '${html.escape(
+            desc || ""
+          )}')">В память</button>`;
+        }
+
+        const valHtml = isString ? `"${html.escape(data)}"` : data;
+        const classType = isString ? "json-string" : "json-number";
+
+        return `<span class="${classType}">${valHtml}</span>${btn}`;
+      }
+
+      if (Array.isArray(data)) {
+        if (data.length === 0) return "[]";
+
+        let itemKey = "";
+        if (currentKey === "participants" || currentKey === "organizers")
+          itemKey = "login";
+
+        const items = data
+          .map(
+            (item) =>
+              `<div>${renderJSON(item, itemKey, null, contextPath)},</div>`
+          )
+          .join("");
+        return `
+                <div class="json-collapsible expanded" onclick="toggleJson(this)">[</div>
+                <div class="json-content">${items}</div>
+                <div>]</div>
+            `;
+      }
+
+      if (typeof data === "object") {
+        if (Object.keys(data).length === 0) return "{}";
+        const items = Object.entries(data)
+          .map(([key, value]) => {
+            return `<div><span class="json-key">"${html.escape(
+              key
+            )}"</span>: ${renderJSON(value, key, data, contextPath)}</div>`;
+          })
+          .join("");
+
+        return `
+                <div class="json-collapsible expanded" onclick="toggleJson(this)">{</div>
+                <div class="json-content">${items}</div>
+                <div>}</div>
+            `;
+      }
+
+      return String(data);
+    }
+
+    window.toggleJson = (el) => {
+      el.classList.toggle("json-collapsed");
+    };
+
+    bindTagHeaders();
+    bindDynamicSelects();
+    loadBuffer();
+    loadCache();
+  </script>
+</body>
+
+</html>

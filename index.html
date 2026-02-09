@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <script>
+      window.name = "tab_index";
+    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Вахтёр / Главная</title>
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><path fill='%23E0292C' fill-rule='evenodd' d='M6.41.993a3 3 0 0 1 3.18 0l5 3.125c.877.548 1.41 1.51 1.41 2.544v9.337H0V6.662c0-1.034.533-1.996 1.41-2.544zM4 11v3h3v-3zm0-6v3h3V5z'/></svg>"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Raleway:wght@100;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <script src="src/login.js"></script>
+    <script src="src/script.js"></script>
+    <link rel="stylesheet" href="src/style.css" />
+  </head>
+
+  <body>
+    <div class="container w-index">
+      <header>
+        <span class="logo"
+          >Вахтёр <span>Скрипты для работы с API Школы 21</span></span
+        >
+      </header>
+
+      <div class="nav-cards">
+        <a
+          href="src/watchman-campus.html"
+          onclick="return openUniqueTab(this.href, 'tab_campus')"
+          class="nav-card"
+        >
+          <div class="nav-card-icon color-k">К</div>
+          <div class="nav-card-title">Кампус</div>
+          <div class="nav-card-subtitle">Карты кампусов</div>
+        </a>
+        <a
+          href="src/watchman-fullapi.html"
+          onclick="return openUniqueTab(this.href, 'tab_api')"
+          class="nav-card"
+        >
+          <div class="nav-card-icon color-a">А</div>
+          <div class="nav-card-title">Апишка</div>
+          <div class="nav-card-subtitle">Дружелюбный API</div>
+        </a>
+        <a
+          href="src/watchman-coins.html"
+          onclick="return openUniqueTab(this.href, 'tab_coins')"
+          class="nav-card"
+        >
+          <div class="nav-card-icon color-m">М</div>
+          <div class="nav-card-title">Монетки</div>
+          <div class="nav-card-subtitle">Количество монеток у пиров</div>
+        </a>
+        <a
+          href="src/watchman-peers.html"
+          onclick="return openUniqueTab(this.href, 'tab_peers')"
+          class="nav-card"
+        >
+          <div class="nav-card-icon color-p">П</div>
+          <div class="nav-card-title">Пиры</div>
+          <div class="nav-card-subtitle">Проекты пира, прп и другое</div>
+        </a>
+      </div>
+
+      <div class="login-cont">
+        <div class="status-card">
+          <div class="status-header">
+            <div class="status-title">Статус</div>
+            <div class="status-right">
+              <div class="server-status">
+                Сервер: <span id="proxy-status">Проверка...</span>
+              </div>
+              <div class="status-subtitle">
+                Запустить сервер python3 start.py или python start.py
+              </div>
+            </div>
+          </div>
+
+          <div class="status-grid">
+            <div class="status-column">
+              <div class="status-column-title">Платформа Школы 21</div>
+
+              <div class="input-group">
+                <label>Логин</label>
+                <div class="input-wrapper">
+                  <input type="text" id="s21-login" placeholder="login" />
+                  <div class="status-indicator" id="status-s21-login">
+                    <!-- JS will inject icon -->
+                  </div>
+                </div>
+                <div class="helper-text">Например, watchman</div>
+              </div>
+
+              <div class="input-group">
+                <label>Пароль</label>
+                <div class="input-wrapper">
+                  <input
+                    type="password"
+                    id="s21-pass"
+                    placeholder="****************"
+                  />
+                  <div class="status-indicator" id="status-s21-pass"></div>
+                </div>
+                <div class="helper-text">
+                  Нужен только для получения токена API школы
+                </div>
+              </div>
+            </div>
+
+            <div class="status-column">
+              <div class="status-column-title">Телеграм для уведомлений</div>
+
+              <div class="input-group">
+                <label>Токен бота</label>
+                <div class="input-wrapper">
+                  <input
+                    type="text"
+                    id="tg-token"
+                    placeholder="xxxxxxxx:xxxxxxxxxxxxxxxxxxxx"
+                  />
+                  <div class="status-indicator" id="status-tg-token"></div>
+                </div>
+                <div class="helper-text">
+                  Бота можно создать через
+                  <a href="https://t.me/BotFather" target="_blank"
+                    >@BotFather</a
+                  >
+                </div>
+              </div>
+
+              <div class="input-group">
+                <label>Айди пользователя</label>
+                <div class="input-wrapper">
+                  <input type="text" id="tg-id" placeholder="xxxxxxxxx" />
+                  <div class="status-indicator" id="status-tg-id"></div>
+                </div>
+                <div class="helper-text">
+                  Сюда приходят уведомления. Узнать через
+                  <a href="https://t.me/userinfobot" target="_blank"
+                    >@userinfobot</a
+                  >
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="status-actions">
+            <label class="checkbox-label" style="color: #666">
+              <input type="checkbox" id="save-creds" />
+              Сохранить данные в браузере
+            </label>
+            <button class="check-btn" id="check-btn">Проверить</button>
+          </div>
+        </div>
+
+        <div class="instructions-block">
+          <div class="instructions-header" onclick="toggleInstructions(this)">
+            <span>Инструкции</span>
+            <span class="toggle-icon">
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M6 9L12 15L18 9"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </span>
+          </div>
+          <div class="instructions-body">
+            <h4>Сервер</h4>
+            <p>
+              Вахтёр работает в браузере, поэтому для доступа к API нужно
+              запустить локальный сервер.
+            </p>
+
+            <p>
+              Запуск сервера: <strong>python3 start.py</strong> или
+              <strong>python start.py</strong> в терминале.<br /><br />
+            </p>
+
+            <h4>Логин и пароль</h4>
+            <p>
+              Доступ к API возможен только с логином и паролем Платформы Школы
+              21.
+            </p>
+            <p>
+              Логин и пароль можно сохранить в файле
+              <strong>login.js</strong> или пользоваться формой на этой
+              странице.
+            </p>
+            <p>
+              Если не нажать &laquo;Запомнить данные в браузере&raquo;, то логин
+              и пароль удалятся при закрытии или обновлении этой страницы.<br /><br />
+            </p>
+
+            <h4>Телеграм</h4>
+            <p>
+              Несколько скриптов дают возможность подписаться на отправку
+              обновлений в Телеграм. Это не обязательный функционал и поля
+              доступа к Телеграм можно не заполнять.
+            </p>
+            <p>
+              Создать телеграм бота можно через
+              <a href="https://t.me/BotFather" target="_blank">@BotFather</a>.
+              Нужно получить токен бота.
+            </p>
+            <p>
+              Узнать свой ID в Телеграм можно через
+              <a href="https://t.me/userinfobot" target="_blank">@userinfobot</a
+              >.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <footer class="page-footer">
+        <div class="footer-left">
+          <svg width="18" height="15" viewBox="0 0 18 15" fill="#7D838E">
+            <path
+              d="M12.5 0C15.538 0 18 2.462 18 5.5V15H5v-3h10V9H5V6h10v-.5C15 4.119 13.881 3 12.5 3H5V0h7.5zM0 3h3v3H0zm0 6h3v3H0z"
+            />
+          </svg>
+          <span class="motto"
+            ><a href="https://github.com/rafikov/watchman">Вахтёр</a> сидит на
+            гите</span
+          >
+        </div>
+      </footer>
+    </div>
+
+    <script>
+      window.toggleInstructions = (header) => {
+        header.parentElement.classList.toggle("expanded");
+      };
+
+      const ICON_SUCCESS = `<svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M16.6666 5L7.49992 14.1667L3.33325 10" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+      const ICON_WARNING = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 8V12M12 16H12.01M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="#1D222C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+
+      const s21LoginInput = document.getElementById("s21-login");
+      const s21PassInput = document.getElementById("s21-pass");
+      const tgTokenInput = document.getElementById("tg-token");
+      const tgIdInput = document.getElementById("tg-id");
+      const saveCredsCheckbox = document.getElementById("save-creds");
+      const checkBtn = document.getElementById("check-btn");
+      const proxyStatusEl = document.getElementById("proxy-status");
+      const statusSubtitleEl = document.querySelector(".status-subtitle");
+
+      const indicators = {
+        s21Login: document.getElementById("status-s21-login"),
+        s21Pass: document.getElementById("status-s21-pass"),
+        tgToken: document.getElementById("status-tg-token"),
+        tgId: document.getElementById("status-tg-id"),
+      };
+
+      function setStatus(el, type) {
+        el.className = "status-indicator " + type;
+        if (type === "success") el.innerHTML = ICON_SUCCESS;
+        else if (type === "warning") el.innerHTML = ICON_WARNING;
+        else el.innerHTML = "";
+      }
+
+      function loadCredentials() {
+        let stored = sessionStorage.getItem("watchman_creds");
+        let fromLocal = false;
+
+        if (!stored) {
+          const match = document.cookie.match(
+            new RegExp("(^| )watchman_creds=([^;]+)")
+          );
+          if (match) {
+            try {
+              stored = decodeURIComponent(match[2]);
+            } catch (e) {}
+          }
+        }
+
+        if (!stored) {
+          stored = localStorage.getItem("watchman_creds");
+          fromLocal = true;
+        }
+
+        if (stored) {
+          try {
+            const creds = JSON.parse(stored);
+            if (creds.s21Login) s21LoginInput.value = creds.s21Login;
+            if (creds.s21Pass) s21PassInput.value = creds.s21Pass;
+            if (creds.tgToken) tgTokenInput.value = creds.tgToken;
+            if (creds.tgId) tgIdInput.value = creds.tgId;
+
+            if (fromLocal) {
+              saveCredsCheckbox.checked = true;
+            }
+          } catch (e) {
+            console.error("Failed to parse credentials", e);
+          }
+        }
+      }
+
+      function saveCredentials() {
+        const creds = {
+          s21Login: s21LoginInput.value,
+          s21Pass: s21PassInput.value,
+          tgToken: tgTokenInput.value,
+          tgId: tgIdInput.value,
+        };
+
+        if (saveCredsCheckbox.checked) {
+          localStorage.setItem("watchman_creds", JSON.stringify(creds));
+          sessionStorage.removeItem("watchman_creds");
+          document.cookie = "watchman_creds=; max-age=0; path=/";
+        } else {
+          document.cookie =
+            "watchman_creds=" +
+            encodeURIComponent(JSON.stringify(creds)) +
+            "; path=/";
+
+          localStorage.removeItem("watchman_creds");
+          sessionStorage.removeItem("watchman_creds");
+        }
+      }
+      async function checkProxy() {
+        proxyStatusEl.textContent = "Проверка...";
+        proxyStatusEl.className = "";
+
+        try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 2000);
+
+          const res = await fetch("http://127.0.0.1:8080/", {
+            signal: controller.signal,
+            method: "HEAD",
+          }).catch((e) => ({ ok: false }));
+
+          clearTimeout(timeoutId);
+
+          try {
+            await fetch("http://127.0.0.1:8080/", {
+              method: "HEAD",
+              mode: "no-cors",
+            });
+            proxyStatusEl.textContent = "Онлайн";
+            proxyStatusEl.className = "status-online";
+            if (statusSubtitleEl) statusSubtitleEl.style.display = "none";
+            return true;
+          } catch (e) {
+            throw e;
+          }
+        } catch (e) {
+          proxyStatusEl.textContent = "Оффлайн";
+          proxyStatusEl.className = "status-offline";
+          if (statusSubtitleEl) statusSubtitleEl.style.display = "block";
+          return false;
+        }
+      }
+
+      async function performCheck() {
+        const isProxyOnline = await checkProxy();
+
+        let user = S21_AUTH_CONFIG.defaultUsername;
+        let pass = S21_AUTH_CONFIG.defaultPassword;
+
+        if (s21LoginInput.value) user = s21LoginInput.value;
+        if (s21PassInput.value) pass = s21PassInput.value;
+
+        setStatus(indicators.s21Login, "loading");
+        indicators.s21Login.innerHTML = "...";
+        indicators.s21Pass.innerHTML = "...";
+
+        let authSuccess = false;
+        if (isProxyOnline) {
+          try {
+            const token = await getAccessToken(user, pass);
+            if (token) {
+              setStatus(indicators.s21Login, "success");
+              setStatus(indicators.s21Pass, "success");
+              authSuccess = true;
+            }
+          } catch (e) {
+            console.warn("Auth failed", e);
+            setStatus(indicators.s21Login, "warning");
+            setStatus(indicators.s21Pass, "warning");
+          }
+        } else {
+          setStatus(indicators.s21Login, "warning");
+          setStatus(indicators.s21Pass, "warning");
+        }
+
+        let tgToken = TG_CONFIG.botToken;
+        let tgId = TG_CONFIG.userId;
+
+        if (tgTokenInput.value) tgToken = tgTokenInput.value;
+        if (tgIdInput.value) tgId = tgIdInput.value;
+
+        indicators.tgToken.innerHTML = "...";
+        indicators.tgId.innerHTML = "...";
+
+        if (tgToken) {
+          try {
+            const url = `https://api.telegram.org/bot${tgToken}/getMe`;
+            const res = await fetch(url);
+            const data = await res.json();
+            if (data.ok) {
+              setStatus(indicators.tgToken, "success");
+            } else {
+              setStatus(indicators.tgToken, "warning");
+            }
+          } catch (e) {
+            setStatus(indicators.tgToken, "warning");
+          }
+        } else {
+          setStatus(indicators.tgToken, "warning");
+        }
+
+        if (tgId && /^\d+$/.test(tgId)) {
+          setStatus(indicators.tgId, "success");
+        } else {
+          setStatus(indicators.tgId, "warning");
+        }
+
+        saveCredentials();
+      }
+
+      window.addEventListener("pagehide", () => {
+        if (!saveCredsCheckbox.checked) {
+          document.cookie = "watchman_creds=; max-age=0; path=/";
+        }
+      });
+
+      window.addEventListener("load", () => {
+        loadCredentials();
+        performCheck();
+      });
+
+      checkBtn.addEventListener("click", performCheck);
+    </script>
+  </body>
+</html>

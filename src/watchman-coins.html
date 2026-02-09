@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Вахтёр / Монетки</title>
+  <link rel="icon" type="image/svg+xml"
+    href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 18 15' fill='%2369E490'><path d='M12.5 0C15.538 0 18 2.462 18 5.5V15H5v-3h10V9H5V6h10v-.5C15 4.119 13.881 3 12.5 3H5V0h7.5zM0 3h3v3H0zm0 6h3v3H0z'/></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="login.js"></script>
+  <script src="script.js"></script>
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+  <div class="container w-coins">
+    <header>
+      <a href="../index.html" onclick="return openUniqueTab(this.href, 'tab_index')" class="logo">Вахтёр
+        <span>Монетки</span></a>
+
+      <div class="controls">
+        <select id="update-interval">
+          <option value="15">Каждые 15 минут</option>
+          <option value="30">Каждые 30 минут</option>
+          <option value="60">Каждый час</option>
+        </select>
+
+        <label class="checkbox-label">
+          <input type="checkbox" id="sound-enabled" />
+          Звук
+        </label>
+
+        <label class="checkbox-label">
+          <input type="checkbox" id="telegram-enabled" />
+          Телеграм
+        </label>
+
+        <button id="subscribe-btn">Подписаться</button>
+      </div>
+    </header>
+
+    <div class="main-grid">
+      <div class="left-column">
+        <div class="add-participant">
+          <input type="text" id="login-input" placeholder="Имя пира (например, watchman)" />
+          <button id="add-btn">Добавить</button>
+        </div>
+
+        <div class="participants-list" id="participants-list">
+          <!-- Participants will be added here -->
+          <div class="placeholder-card"></div>
+          <div class="placeholder-card"></div>
+          <div class="placeholder-card"></div>
+          <div class="placeholder-card"></div>
+        </div>
+      </div>
+
+      <div class="right-column">
+        <div class="updates-log" id="updates-log">
+          <!-- Logs will appear here -->
+        </div>
+      </div>
+    </div>
+
+    <footer class="page-footer">
+      <div class="footer-left">
+        <svg width="18" height="15" viewBox="0 0 18 15" fill="#7D838E">
+          <path
+            d="M12.5 0C15.538 0 18 2.462 18 5.5V15H5v-3h10V9H5V6h10v-.5C15 4.119 13.881 3 12.5 3H5V0h7.5zM0 3h3v3H0zm0 6h3v3H0z" />
+        </svg>
+        <span class="motto"><a href="https://github.com/rafikov/watchman">Вахтёр</a> сидит на гите</span>
+      </div>
+    </footer>
+  </div>
+
+  <div id="status-message"></div>
+
+  <script>
+    const participants = new Map();
+    let isSubscribed = false;
+    let subscriptionTimer = null;
+    let countdownTimer = null;
+
+    const loginInput = document.getElementById("login-input");
+    const addBtn = document.getElementById("add-btn");
+    const participantsList = document.getElementById("participants-list");
+    const updatesLog = document.getElementById("updates-log");
+    const subscribeBtn = document.getElementById("subscribe-btn");
+    const intervalSelect = document.getElementById("update-interval");
+    const soundCheckbox = document.getElementById("sound-enabled");
+    const telegramCheckbox = document.getElementById("telegram-enabled");
+    const statusMessage = document.getElementById("status-message");
+
+    function saveToStorage() {
+      saveMapToStorage("watchman_participants", participants);
+    }
+
+    function loadFromStorage() {
+      const loaded = loadMapFromStorage(
+        "watchman_participants",
+        participants,
+        "Failed to load participants"
+      );
+      if (loaded) {
+        renderParticipants();
+        if (participants.size > 0) {
+          setTimeout(() => checkUpdates(), 500);
+        }
+      }
+    }
+
+    window.addEventListener("load", () => {
+      if (!TG_CONFIG.botToken || !TG_CONFIG.userId) {
+        telegramCheckbox.disabled = true;
+        telegramCheckbox.title = "Настройте бота в login.js";
+      }
+
+      loadFromStorage();
+    });
+
+    async function fetchUserCoins(token, login) {
+      const url = `${BASE_URL}/participants/${login}/points`;
+      const response = await fetch(url, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Не удалось получить данные для ${login}`);
+      }
+
+      const data = await response.json();
+      return data.coins;
+    }
+
+    async function addParticipant() {
+      const login = loginInput.value.trim();
+      if (!login) return;
+
+      if (participants.has(login)) {
+        showStatus("Пир уже есть в списке", true);
+        return;
+      }
+
+      addBtn.disabled = true;
+      addBtn.textContent = "Загружаем";
+      addBtn.classList.add("btn-loading");
+
+      try {
+        const token = await getAccessToken();
+        const coins = await fetchUserCoins(token, login);
+
+        participants.set(login, { coins });
+        saveToStorage();
+        renderParticipants();
+        loginInput.value = "";
+        showStatus(`Добавлен ${login}`);
+
+      } catch (error) {
+        console.error(error);
+        showStatus(`Ошибка: ${error.message}`, true);
+      } finally {
+        addBtn.disabled = false;
+        addBtn.textContent = "Добавить";
+        addBtn.classList.remove("btn-loading");
+      }
+    }
+
+    function removeParticipant(login) {
+      participants.delete(login);
+      saveToStorage();
+      renderParticipants();
+    }
+
+    function renderParticipants() {
+      participantsList.innerHTML = "";
+      if (participants.size === 0) {
+        renderPlaceholders(participantsList, 4);
+        return;
+      }
+
+      participants.forEach((data, login) => {
+        const card = document.createElement("div");
+        card.className = "participant-card";
+        card.innerHTML = `
+                <div class="participant-info">
+                    <span class="participant-name"><a href="https://platform.21-school.ru/profile/${login}" target="_blank">${login}</a></span>
+                    <span class="participant-coins">монет: ${data.coins}</span>
+                </div>
+                <button class="delete-btn" onclick="removeParticipant('${login}')">Удалить</button>
+            `;
+        participantsList.appendChild(card);
+      });
+    }
+
+    async function checkUpdates() {
+      if (participants.size === 0) return;
+
+      try {
+        const token = await getAccessToken();
+
+        const promises = Array.from(participants.keys()).map(
+          async (login) => {
+            try {
+              const newCoins = await fetchUserCoins(token, login);
+              return { login, newCoins };
+            } catch (e) {
+              console.error(`Update failed for ${login}`, e);
+              return null;
+            }
+          }
+        );
+
+        const results = await Promise.all(promises);
+
+        let hasUpdates = false;
+        let updatesList = [];
+
+        for (const result of results) {
+          if (!result) continue;
+
+          const { login, newCoins } = result;
+          const currentData = participants.get(login);
+
+          if (currentData.coins !== newCoins) {
+            const diff = newCoins - currentData.coins;
+            const diffStr = diff > 0 ? `+${diff}` : `${diff}`;
+
+            const now = new Date();
+            const timeStr = `${String(now.getHours()).padStart(
+              2,
+              "0"
+            )}:${String(now.getMinutes()).padStart(2, "0")}`;
+
+            logUpdate(login, diff);
+
+            participants.set(login, { ...currentData, coins: newCoins });
+            hasUpdates = true;
+
+            updatesList.push(`${timeStr} ${login} ${diffStr}`);
+          }
+        }
+
+        if (hasUpdates) {
+          if (soundCheckbox.checked) {
+            playSound();
+          }
+
+          if (telegramCheckbox.checked && updatesList.length > 0) {
+            const msg = `Вахтёр / Монетки. События:\n${updatesList.join(
+              "\n"
+            )}`;
+            sendTelegramMessage(msg);
+          }
+
+          saveToStorage();
+
+          renderParticipants();
+        }
+      } catch (error) {
+        console.error("Update check failed", error);
+      }
+    }
+
+    function logUpdate(login, diff) {
+      const now = new Date();
+      const timeStr = `${String(now.getHours()).padStart(2, "0")}:${String(
+        now.getMinutes()
+      ).padStart(2, "0")}`;
+      const sign = diff > 0 ? "+" : "";
+
+      const entry = document.createElement("div");
+      entry.className = "log-entry";
+      entry.innerHTML = `
+            <span class="log-time">${timeStr}</span>
+            <span class="log-user">${login}</span>
+            <span class="log-change ${diff > 0 ? "positive" : "negative"
+        }">${sign}${diff}</span>
+        `;
+
+      updatesLog.prepend(entry);
+    }
+
+    function toggleSubscription() {
+      if (isSubscribed) {
+        clearInterval(subscriptionTimer);
+        clearInterval(countdownTimer);
+        isSubscribed = false;
+        subscribeBtn.textContent = "Подписаться";
+        subscribeBtn.classList.remove("active");
+        intervalSelect.disabled = false;
+      } else {
+        if (participants.size === 0) {
+          showStatus("Добавьте пиров в список", true);
+          return;
+        }
+
+        isSubscribed = true;
+        subscribeBtn.classList.add("active");
+        intervalSelect.disabled = true;
+
+        if (telegramCheckbox.checked) {
+          sendTelegramMessage(
+            "Включена подписка на события Вахтёр / Монетки"
+          );
+        }
+
+        const minutes = parseInt(intervalSelect.value);
+        const durationMs = minutes * 60 * 1000;
+
+        startCountdown(minutes * 60);
+
+        subscriptionTimer = setInterval(() => {
+          checkUpdates();
+          startCountdown(minutes * 60);
+        }, durationMs);
+      }
+    }
+
+    const updateButtonText = (seconds) => {
+      subscribeBtn.textContent = formatDurationHMS(seconds);
+    };
+
+    function startCountdown(seconds) {
+      countdownTimer = startCountdownTimer(
+        seconds,
+        updateButtonText,
+        countdownTimer
+      );
+    }
+
+    const playSound = createSoundPlayer((e) =>
+      console.error("Error playing sound:", e)
+    );
+
+    const showStatus = createStatusHandler(statusMessage);
+
+    addBtn.addEventListener("click", addParticipant);
+    subscribeBtn.addEventListener("click", toggleSubscription);
+
+    loginInput.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") addParticipant();
+    });
+
+    soundCheckbox.addEventListener("change", () => {
+      if (soundCheckbox.checked) {
+        playSound();
+      }
+    });
+
+    telegramCheckbox.addEventListener("change", async () => {
+      if (telegramCheckbox.checked) {
+        if (!TG_CONFIG.botToken || !TG_CONFIG.userId) {
+          telegramCheckbox.checked = false;
+          showStatus("Настройте бота в login.js", true);
+          return;
+        }
+
+        try {
+          telegramCheckbox.disabled = true;
+          const botName = await verifyTelegramBot();
+          showStatus(`Подключен бот: @${botName}`);
+        } catch (error) {
+          telegramCheckbox.checked = false;
+          showStatus(`Ошибка Телеграм: ${error.message}`, true);
+        } finally {
+          telegramCheckbox.disabled = false;
+        }
+      }
+    });
+
+    window.participants = participants;
+    window.saveToStorage = saveToStorage;
+    window.logUpdate = logUpdate;
+    window.renderParticipants = renderParticipants;
+    window.playSound = playSound;
+    window.sendTelegramMessage = sendTelegramMessage;
+    window.showStatus = showStatus;
+  </script>
+
+  <!--<script src="debug.js"></script>-->
+</body>
+
+</html>
