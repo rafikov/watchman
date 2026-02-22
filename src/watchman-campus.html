@@ -4,9 +4,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Вахтёр / Кампус</title>
+  <title>Часовой / Кампус</title>
   <link rel="icon" type="image/svg+xml"
-    href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 18 15' fill='%23FFC540'><path d='M12.5 0C15.538 0 18 2.462 18 5.5V15H5v-3h10V9H5V6h10v-.5C15 4.119 13.881 3 12.5 3H5V0h7.5zM0 3h3v3H0zm0 6h3v3H0z'/></svg>" />
+    href='data:image/svg+xml,<svg width="16" height="16" viewBox="0 0 16 16" fill="%23FFC540" xmlns="http://www.w3.org/2000/svg"><path d="M5.667 0C5.667 0.952 6.578 1.951 8 1.951C9.422 1.951 10.333 0.952 10.333 0H12.667C12.667 1.139 12.203 2.131 11.467 2.874C13.577 4.084 15 6.362 15 8.976C15 12.855 11.866 16 8 16C4.134 16 1 12.855 1 8.976C1 6.363 2.422 4.084 4.532 2.874C3.797 2.131 3.333 1.139 3.333 0H5.667ZM8 4.293C5.423 4.293 3.333 6.389 3.333 8.976C3.333 11.562 5.423 13.659 8 13.659C10.577 13.659 12.667 11.562 12.667 8.976C12.667 6.389 10.577 4.293 8 4.293Z" /></svg>' />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -19,54 +19,26 @@
 <body>
   <div class="container w-campus">
     <header>
-      <a href="../index.html" onclick="return openUniqueTab(this.href, 'tab_index')" class="logo">Вахтёр
-        <span>Кампус</span></a>
+      <div class="header-left">
+        <a href="../index.html" onclick="return openUniqueTab(this.href, 'tab_index')" class="logo">Часовой
+          <span>Кампус</span></a><span class="connection-status"></span>
+      </div>
 
       <div class="controls">
-        <div class="controls-group">
-          <select id="event-select">
-            <option value="all">Все пиры</option>
-            <option value="login">Выбранные пиры (0)</option>
-            <option value="add">Выбрать пира</option>
-          </select>
-        </div>
 
         <div class="controls-group">
           <select id="update-interval">
+            <option value="manual" selected>Вручную</option>
             <option value="5">Каждые 5 минут</option>
             <option value="15">Каждые 15 минут</option>
             <option value="30">Каждые 30 минут</option>
             <option value="60">Каждый час</option>
           </select>
 
-          <label class="checkbox-label">
-            <input type="checkbox" id="sound-enabled" />
-            Звук
-          </label>
-
-          <label class="checkbox-label">
-            <input type="checkbox" id="telegram-enabled" />
-            Телеграм
-          </label>
-
-          <button id="subscribe-btn">Подписаться</button>
+          <button id="update-btn">Обновить</button>
         </div>
       </div>
     </header>
-
-    <div class="modal-selected" id="modal-selected" style="display: none">
-      <div class="select-peer">
-        <button class="close-modal" id="close-modal">&times;</button>
-        <div class="add-participant">
-          <input type="text" id="login-input" placeholder="Имя пира (например, watchman)" />
-          <button id="add-btn">Добавить</button>
-        </div>
-
-        <div class="participants-list" id="participants-list">
-          <!-- Participants will be added here -->
-        </div>
-      </div>
-    </div>
 
     <div class="map-container">
       <div class="map-view" id="map-view">
@@ -241,11 +213,11 @@
 
     <footer class="page-footer">
       <div class="footer-left">
-        <svg width="18" height="15" viewBox="0 0 18 15" fill="#7D838E">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="#7D838E" xmlns="http://www.w3.org/2000/svg">
           <path
-            d="M12.5 0C15.538 0 18 2.462 18 5.5V15H5v-3h10V9H5V6h10v-.5C15 4.119 13.881 3 12.5 3H5V0h7.5zM0 3h3v3H0zm0 6h3v3H0z" />
+            d="M5.667 0C5.667 0.952 6.578 1.951 8 1.951C9.422 1.951 10.333 0.952 10.333 0H12.667C12.667 1.139 12.203 2.131 11.467 2.874C13.577 4.084 15 6.362 15 8.976C15 12.855 11.866 16 8 16C4.134 16 1 12.855 1 8.976C1 6.363 2.422 4.084 4.532 2.874C3.797 2.131 3.333 1.139 3.333 0H5.667ZM8 4.293C5.423 4.293 3.333 6.389 3.333 8.976C3.333 11.562 5.423 13.659 8 13.659C10.577 13.659 12.667 11.562 12.667 8.976C12.667 6.389 10.577 4.293 8 4.293Z" />
         </svg>
-        <span class="motto"><a href="https://github.com/rafikov/watchman">Вахтёр</a> сидит на гите</span>
+        <span class="motto"><a href="https://github.com/rafikov/watchman">Часовой</a> на гите</span>
       </div>
 
       <div class="footer-right">
@@ -286,10 +258,8 @@
     var clusters = [];
     var mapData = new Map();
     var hostState = new Map();
-    var isSubscribed = false;
     var pollTimer = null;
     var countdownTimer = null;
-    var selectedPeers = new Set();
 
     const mapView = document.getElementById("map-view");
     const mapLoading = document.getElementById("map-loading");
@@ -297,133 +267,17 @@
     const eventsSidebar = document.getElementById("events-sidebar");
     const sidebarToggle = document.getElementById("sidebar-toggle");
     const eventsLog = document.getElementById("events-log");
-    const subscribeBtn = document.getElementById("subscribe-btn");
+    const updateBtn = document.getElementById("update-btn");
     const intervalSelect = document.getElementById("update-interval");
-    const eventSelect = document.getElementById("event-select");
-    const soundCheckbox = document.getElementById("sound-enabled");
-    const telegramCheckbox = document.getElementById("telegram-enabled");
     const campusSelect = document.getElementById("campus-select");
-
-    const modalSelected = document.getElementById("modal-selected");
-    const closeModalBtn = document.getElementById("close-modal");
-    const addPeerBtn = document.getElementById("add-btn");
-    const peerInput = document.getElementById("login-input");
-    const participantsList = document.getElementById("participants-list");
 
     eventsSidebar.style.display = "none";
 
     window.addEventListener("load", () => {
-      if (typeof TG_CONFIG === "undefined" || !TG_CONFIG.botToken) {
-        if (telegramCheckbox) {
-          telegramCheckbox.disabled = true;
-          telegramCheckbox.title = "Configure bot in login.js";
-        }
-      }
-    });
-
-    function loadSelectedPeers() {
-      try {
-        const stored = localStorage.getItem("watchman_campus_peers");
-        if (stored) {
-          const list = JSON.parse(stored);
-          list.forEach((p) => selectedPeers.add(p));
-          updateSelectOption();
-          renderPeerList();
-        }
-      } catch (e) {
-        console.error("Failed to load peers", e);
-      }
-    }
-
-    function saveSelectedPeers() {
-      localStorage.setItem(
-        "watchman_campus_peers",
-        JSON.stringify(Array.from(selectedPeers))
-      );
-      updateSelectOption();
-      renderPeerList();
-    }
-
-    function updateSelectOption() {
-      const option = eventSelect.querySelector('option[value="login"]');
-      if (option) {
-        option.textContent = `Выбранные пиры (${selectedPeers.size})`;
-      }
-    }
-
-    function addPeer() {
-      const login = peerInput.value.trim().toLowerCase();
-      if (!login) return;
-
-      if (selectedPeers.has(login)) {
-        return;
-      }
-
-      selectedPeers.add(login);
-      saveSelectedPeers();
-      peerInput.value = "";
-      renderPeerList();
-      renderMap();
-    }
-
-    function removePeer(login) {
-      selectedPeers.delete(login);
-      saveSelectedPeers();
-      renderPeerList();
-      renderMap();
-    }
-
-    function renderPeerList() {
-      participantsList.innerHTML = "";
-      if (selectedPeers.size === 0) {
-        participantsList.innerHTML =
-          '<div style="color: #8b949e; padding: 20px; text-align: center;">Список пуст</div>';
-        return;
-      }
-
-      selectedPeers.forEach((login) => {
-        const div = document.createElement("div");
-        div.className = "participant-card";
-        div.innerHTML = `
-                <span class="participant-name">${login}</span>
-                <button class="delete-btn" onclick="removePeer('${login}')">Удалить</button>
-            `;
-        participantsList.appendChild(div);
-      });
-    }
-
-    closeModalBtn.addEventListener("click", () => {
-      modalSelected.style.display = "none";
-    });
-
-    addPeerBtn.addEventListener("click", addPeer);
-
-    eventSelect.addEventListener("change", () => {
-      const value = eventSelect.value;
-      if (value === "add") {
-        modalSelected.style.display = "flex";
-        eventSelect.value = "login";
-        checkUpdates();
-      } else if (value === "login") {
-        if (selectedPeers.size === 0) {
-          modalSelected.style.display = "flex";
-        }
-        checkUpdates();
-      } else {
-        checkUpdates();
-      }
-    });
-
-    loadSelectedPeers();
-
-    peerInput.addEventListener("keypress", (e) => {
-      if (e.key === "Enter") addPeer();
-    });
-
-    modalSelected.addEventListener("click", (e) => {
-      if (e.target === modalSelected) {
-        modalSelected.style.display = "none";
-      }
+      fetchCampuses();
+      loadFullMap();
+      startAutoUpdate();
+      checkSystemStatus();
     });
 
     async function fetchCampuses() {
@@ -484,23 +338,6 @@
       loadFullMap();
     });
 
-    eventSelect.addEventListener("change", () => {
-      const val = eventSelect.value;
-
-      if (val === "add") {
-        modalSelected.style.display = "flex";
-        eventSelect.value = "login";
-      } else if (val === "login") {
-        if (selectedPeers.size === 0) {
-          modalSelected.style.display = "flex";
-        }
-      }
-
-      renderMap();
-    });
-
-    loadSelectedPeers();
-
     sidebarToggle.addEventListener("click", () => {
       eventsSidebar.classList.toggle("visible");
       sidebarToggle.innerHTML = eventsSidebar.classList.contains("visible")
@@ -558,8 +395,6 @@
         hideTooltip();
       }
     });
-
-
 
     async function fetchClusters(token) {
       let retries = 3;
@@ -628,47 +463,49 @@
           await fetchClusters(token);
         }
 
-        const promises = clusters.map(async (cluster) => {
-          await new Promise((r) => setTimeout(r, Math.random() * 500));
+        if (clusters.length > 0) {
+          const promises = clusters.map(async (cluster) => {
+            await new Promise((r) => setTimeout(r, Math.random() * 500));
 
-          let retries = 3;
-          while (retries > 0) {
-            try {
-              const hosts = await fetchClusterMap(cluster.id, token);
-              mapData.set(cluster.id, hosts);
+            let retries = 3;
+            while (retries > 0) {
+              try {
+                const hosts = await fetchClusterMap(cluster.id, token);
+                mapData.set(cluster.id, hosts);
 
-              hosts.forEach((host) => {
-                const seatId = `${cluster.id}-${host.row}-${host.number}`;
+                hosts.forEach((host) => {
+                  const seatId = `${cluster.id}-${host.row}-${host.number}`;
 
-                if (host.login) {
-                  hostState.set(seatId, {
-                    user: host.login,
-                    seatId: seatId,
-                    location: `${cluster.name} ${host.row}-${host.number}`,
-                  });
-                } else {
-                  if (hostState.has(seatId)) {
-                    hostState.delete(seatId);
+                  if (host.login) {
+                    hostState.set(seatId, {
+                      user: host.login,
+                      seatId: seatId,
+                      location: `${cluster.name} ${host.row}-${host.number}`,
+                    });
+                  } else {
+                    if (hostState.has(seatId)) {
+                      hostState.delete(seatId);
+                    }
                   }
-                }
-              });
-              break;
-            } catch (e) {
-              console.warn(
-                `Retry map fetch for ${cluster.name} (${retries} left)`,
-                e
-              );
-              retries--;
-              if (retries === 0)
-                console.error(`Failed to fetch map for ${cluster.name}`);
-              await new Promise((r) =>
-                setTimeout(r, 2000 * Math.pow(2, 3 - retries))
-              );
+                });
+                break;
+              } catch (e) {
+                console.warn(
+                  `Retry map fetch for ${cluster.name} (${retries} left)`,
+                  e
+                );
+                retries--;
+                if (retries === 0)
+                  console.error(`Failed to fetch map for ${cluster.name}`);
+                await new Promise((r) =>
+                  setTimeout(r, 2000 * Math.pow(2, 3 - retries))
+                );
+              }
             }
-          }
-        });
+          });
 
-        await Promise.all(promises);
+          await Promise.all(promises);
+        }
         renderMap();
       } catch (e) {
         console.error("Error in loadFullMap:", e);
@@ -679,24 +516,35 @@
     }
 
     async function preloadTopParticipants() {
-      const seats = Array.from(
-        document.querySelectorAll(".seat.occupied")
-      ).slice(0, 10);
+      const seats = Array.from(document.querySelectorAll(".seat.occupied"));
       if (seats.length === 0) return;
+
+      for (let i = seats.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [seats[i], seats[j]] = [seats[j], seats[i]];
+      }
+
+      const targets = seats.slice(0, 15);
 
       try {
         const token = await getAccessToken();
-        seats.forEach(async (seat) => {
+
+        for (const seat of targets) {
+          if (window.isInteracting) {
+            await new Promise(r => setTimeout(r, 1000));
+          }
+
           const login = seat.dataset.login;
           if (login && !UserCache.get(login)) {
             try {
               const details = await fetchUserDetails(login, token);
               UserCache.set(login, details);
+              await new Promise(r => setTimeout(r, 200));
             } catch (e) {
-              console.error("Preload failed for", login);
+              console.warn("Preload failed for", login);
             }
           }
-        });
+        }
       } catch (e) {
         console.error("Preload token error");
       }
@@ -829,10 +677,6 @@
               seat.dataset.login = host.login;
               seat.title = host.login;
 
-              if (selectedPeers.has(host.login.toLowerCase())) {
-                seat.classList.add("watched");
-              }
-
               seat.addEventListener("click", (e) =>
                 showTooltip(e, host, location)
               );
@@ -880,6 +724,7 @@
     }
 
     async function showTooltip(e, host, location) {
+      window.isInteracting = true;
       e.stopPropagation();
 
       if (activeSeatElement) {
@@ -905,12 +750,14 @@
           "</a>";
 
         if (window.handleDebugTooltip && window.handleDebugTooltip(host.login)) {
+          window.isInteracting = false;
           return;
         }
 
         const cached = UserCache.get(host.login);
         if (cached) {
           updateTooltipUI(cached);
+          window.isInteracting = false;
           return;
         }
 
@@ -928,7 +775,11 @@
           updateTooltipUI(details);
         } catch (err) {
           console.error(err);
+        } finally {
+          window.isInteracting = false;
         }
+      } else {
+        window.isInteracting = false;
       }
     }
 
@@ -988,11 +839,13 @@
               ].includes(s)
             )
               return 1;
-            if (["IN_PROGRESS", "REGISTERED", "ASSIGNED"].includes(s))
+            if (["IN_PROGRESS"].includes(s))
               return 2;
-            if (s === "ACCEPTED") return 3;
-            if (s === "FAILED") return 4;
-            return 5;
+            if (["REGISTERED", "ASSIGNED"].includes(s))
+              return 3;
+            if (s === "ACCEPTED") return 4;
+            if (s === "FAILED") return 5;
+            return 6;
           };
 
           const getDate = (p) => {
@@ -1041,6 +894,7 @@
 
     fetchCampuses();
     loadFullMap();
+    startAutoUpdate();
 
     function showStatus(msg) {
       const el = document.getElementById("status-message");
@@ -1049,73 +903,85 @@
       setTimeout(() => (el.className = ""), 3000);
     }
 
-    subscribeBtn.addEventListener("click", () => {
-      if (!isSubscribed) {
-        isSubscribed = true;
-        subscribeBtn.textContent = "Отписаться";
-        subscribeBtn.classList.add("active");
+    function startAutoUpdate() {
+      if (pollTimer) clearInterval(pollTimer);
+      if (countdownTimer) clearInterval(countdownTimer);
 
-        if (telegramCheckbox.checked) {
-          sendTelegramMessage(
-            "Включена подписка на события Вахтёр / Кампус"
-          );
-        }
-
-        const minutes = parseInt(intervalSelect.value);
-        startPolling(minutes);
-      } else {
-        isSubscribed = false;
-        subscribeBtn.textContent = "Подписаться";
-        subscribeBtn.classList.remove("active");
-        stopPolling();
+      const val = intervalSelect.value;
+      if (val === "manual") {
+        updateBtn.textContent = "Обновить";
+        return;
       }
+
+      const intervalSec = parseInt(val) * 60;
+      countdownTimer = startCountdownTimer(intervalSec, (remaining) => {
+        updateBtn.textContent = `Обновить (${formatDurationHMS(remaining)})`;
+        if (remaining <= 0) {
+          checkUpdates();
+          startAutoUpdate();
+        }
+      }, countdownTimer);
+    }
+
+    function updateDropdownText(seconds) {
+      const selectedOption = intervalSelect.options[intervalSelect.selectedIndex];
+      const baseText = getBaseOptionText(intervalSelect.value);
+      if (intervalSelect.value === "manual") {
+        selectedOption.text = baseText;
+      } else {
+        selectedOption.text = `${baseText} (${formatDurationHMS(seconds)})`;
+      }
+    }
+
+    function getBaseOptionText(value) {
+      switch (value) {
+        case "manual": return "Вручную";
+        case "5": return "Каждые 5 минут";
+        case "15": return "Каждые 15 минут";
+        case "30": return "Каждые 30 минут";
+        case "60": return "Каждый час";
+        default: return "Интервал";
+      }
+    }
+
+    function resetDropdownText() {
+      Array.from(intervalSelect.options).forEach(opt => {
+        opt.text = getBaseOptionText(opt.value);
+      });
+    }
+
+    intervalSelect.addEventListener("change", () => {
+      startAutoUpdate();
+      notifySubscription("Кампус", intervalSelect.value);
     });
 
-    function startPolling(minutes) {
-      checkUpdates();
-
-      pollTimer = setInterval(checkUpdates, minutes * 60 * 1000);
-
-      let seconds = minutes * 60;
-      updateCountdown(seconds);
-      countdownTimer = setInterval(() => {
-        seconds--;
-        if (seconds <= 0) seconds = minutes * 60;
-        updateCountdown(seconds);
-      }, 1000);
-    }
-
-    function stopPolling() {
-      clearInterval(pollTimer);
-      clearInterval(countdownTimer);
-      subscribeBtn.textContent = "Подписаться";
-    }
-
-    function updateCountdown(seconds) {
-      const m = Math.floor(seconds / 60);
-      const s = seconds % 60;
-      subscribeBtn.textContent = `${m}:${s.toString().padStart(2, "0")}`;
-    }
+    updateBtn.addEventListener("click", async () => {
+      updateBtn.classList.add("updating");
+      try {
+        await checkUpdates();
+      } finally {
+        updateBtn.classList.remove("updating");
+      }
+      if (intervalSelect.value !== "manual") {
+        startAutoUpdate();
+      }
+    });
 
     async function checkUpdates() {
       console.log("Checking for updates...");
       const oldState = new Map(hostState);
 
       await loadFullMap(true);
+      checkSystemStatus();
 
       const updates = [];
       const now = new Date();
       const timeStr = `${String(now.getHours()).padStart(2, "0")}:${String(
         now.getMinutes()
       ).padStart(2, "0")}`;
-      const filterMode = eventSelect.value;
 
       function shouldTrack(user) {
-        if (!user) return false;
-        if (filterMode === "login") {
-          return selectedPeers.has(user.toLowerCase());
-        }
-        return true;
+        return !!user;
       }
 
       hostState.forEach((data, key) => {
@@ -1155,21 +1021,16 @@
 
       if (updates.length > 0) {
         updates.forEach((update) => logUpdate(update));
-        if (soundCheckbox.checked) {
-          playSound();
-        }
 
-        if (telegramCheckbox.checked) {
-          const msg = `Вахтёр / Кампус. События:\n${updates
-            .map((u) => {
-              let text = "";
-              if (u.type === "login") text = `Login: ${u.user} at ${u.location}`;
-              else if (u.type === "logout") text = `Logout: ${u.user} from ${u.location}`;
-              else if (u.type === "change") text = `Changed: ${u.user} at ${u.location}`;
-              return `${u.time} ${text}`;
-            })
-            .join("\n")}`;
-          sendTelegramMessage(msg);
+        const creds = getStoredCredentials();
+        if (creds && creds.tgToken && creds.tgId) {
+          const lines = updates.map(u => {
+            if (u.type === 'login') return `${u.user} пришел в ${u.location}`;
+            if (u.type === 'logout') return `${u.user} ушел из ${u.location}`;
+            return `🔄 ${u.user} пересел на ${u.location}`;
+          });
+          const msg = `Часовой / Кампус. События:\n${lines.join('\n')}`;
+          sendTelegramMessage(msg.replace(/&rarr;/g, "->"));
         }
       }
     }
@@ -1177,58 +1038,31 @@
     function logUpdate(update) {
       const entry = document.createElement("div");
       entry.className = "log-entry";
-      let msg = "";
-      if (update.type === "login") {
-        msg = `Login: ${update.user} at ${update.location}`;
-      } else if (update.type === "logout") {
-        msg = `Logout: ${update.user} from ${update.location}`;
-      } else if (update.type === "change") {
-        msg = `Changed: ${update.user} at ${update.location}`;
-      }
 
-      entry.innerHTML = `<div class="log-time">${update.time}</div><div class="log-msg">${msg}</div>`;
-      eventsLog.insertBefore(entry, eventsLog.firstChild);
+      let header = update.user;
+      let text = "";
+      if (update.type === "login") text = `Пришел в ${update.location}`;
+      else if (update.type === "logout") text = `Ушел из ${update.location}`;
+      else if (update.type === "change") text = `Пересел на ${update.location}`;
+
+      entry.innerHTML = `
+            <div class="log-time">${update.time}</div>
+            <div class="log-content">
+                <span class="log-header">${header}</span>
+                <span class="log-details">${text}</span>
+            </div>
+        `;
+      eventsLog.prepend(entry);
 
       if (eventsLog.children.length > 0) {
         eventsSidebar.style.display = "flex";
       }
     }
 
-    const playSound = createSoundPlayer((e) => console.error(e));
-
-    soundCheckbox.addEventListener("change", () => {
-      if (soundCheckbox.checked) {
-        playSound();
-      }
-    });
-
-    telegramCheckbox.addEventListener("change", async () => {
-      if (telegramCheckbox.checked) {
-        if (!TG_CONFIG.botToken || !TG_CONFIG.userId) {
-          telegramCheckbox.checked = false;
-          showStatus("Настройте бота в login.js", true);
-          return;
-        }
-
-        try {
-          telegramCheckbox.disabled = true;
-          const botName = await verifyTelegramBot();
-          showStatus(`Подключен бот: @${botName}`);
-        } catch (error) {
-          telegramCheckbox.checked = false;
-          showStatus(`Ошибка Телеграм: ${error.message}`, true);
-        } finally {
-          telegramCheckbox.disabled = false;
-        }
-      }
-    });
-
     window.clusters = clusters;
     window.mapData = mapData;
     window.hostState = hostState;
-    window.selectedPeers = selectedPeers;
     window.logUpdate = logUpdate;
-    window.playSound = playSound;
     window.showStatus = showStatus;
   </script>
 

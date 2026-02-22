@@ -4,9 +4,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Вахтёр / Пиры</title>
+  <title>Часовой / Пиры</title>
   <link rel="icon" type="image/svg+xml"
-    href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 18 15' fill='%23914BE3'><path d='M12.5 0C15.538 0 18 2.462 18 5.5V15H5v-3h10V9H5V6h10v-.5C15 4.119 13.881 3 12.5 3H5V0h7.5zM0 3h3v3H0zm0 6h3v3H0z'/></svg>" />
+    href='data:image/svg+xml,<svg width="16" height="16" viewBox="0 0 16 16" fill="%23914BE3" xmlns="http://www.w3.org/2000/svg"><path d="M5.667 0C5.667 0.952 6.578 1.951 8 1.951C9.422 1.951 10.333 0.952 10.333 0H12.667C12.667 1.139 12.203 2.131 11.467 2.874C13.577 4.084 15 6.362 15 8.976C15 12.855 11.866 16 8 16C4.134 16 1 12.855 1 8.976C1 6.363 2.422 4.084 4.532 2.874C3.797 2.131 3.333 1.139 3.333 0H5.667ZM8 4.293C5.423 4.293 3.333 6.389 3.333 8.976C3.333 11.562 5.423 13.659 8 13.659C10.577 13.659 12.667 11.562 12.667 8.976C12.667 6.389 10.577 4.293 8 4.293Z" /></svg>' />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -18,35 +18,40 @@
 <body>
   <div class="container w-peers">
     <header>
-      <a href="../index.html" onclick="return openUniqueTab(this.href, 'tab_index')" class="logo">Вахтёр
-        <span>Пиры</span></a>
+      <div class="header-left">
+        <a href="../index.html" onclick="return openUniqueTab(this.href, 'tab_index')" class="logo">Часовой
+          <span>Пиры</span></a><span class="connection-status"></span>
+      </div>
 
       <div class="controls">
         <select id="update-interval">
+          <option value="manual" selected>Вручную</option>
           <option value="5">Каждые 5 минут</option>
-          <option value="15" selected>Каждые 15 минут</option>
+          <option value="15">Каждые 15 минут</option>
           <option value="30">Каждые 30 минут</option>
           <option value="60">Каждый час</option>
         </select>
 
-        <label class="checkbox-label">
-          <input type="checkbox" id="sound-enabled" />
-          Звук
-        </label>
-
-        <label class="checkbox-label">
-          <input type="checkbox" id="telegram-enabled" />
-          Телеграм
-        </label>
-
-        <button id="subscribe-btn">Подписаться</button>
+        <button id="update-btn">Обновить</button>
       </div>
     </header>
 
     <div class="main-grid">
       <div class="left-column">
+        <div class="settings-panel">
+          <label class="checkbox-label"><input type="checkbox" checked data-target="prp"> PRP</label>
+          <label class="checkbox-label"><input type="checkbox" checked data-target="xp"> XP</label>
+          <label class="checkbox-label"><input type="checkbox" checked data-target="expToNext"> XP след.</label>
+          <label class="checkbox-label"><input type="checkbox" checked data-target="level"> Уровень</label>
+          <label class="checkbox-label"><input type="checkbox" checked data-target="coins"> Монетки</label>
+          <label class="checkbox-label"><input type="checkbox" checked data-target="projects"> Проекты</label>
+          <label class="checkbox-label"><input type="checkbox" checked data-target="status"> Статус</label>
+        </div>
+      </div>
+
+      <div class="center-column">
         <div class="add-participant">
-          <input type="text" id="login-input" placeholder="Имя пира (например, watchman)" />
+          <input type="text" id="login-input" placeholder="Свой логин или логины друзей (например, watchman)" />
           <button id="add-btn">Добавить</button>
         </div>
 
@@ -68,20 +73,18 @@
 
     <footer class="page-footer">
       <div class="footer-left">
-        <svg width="18" height="15" viewBox="0 0 18 15" fill="#7D838E">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="#7D838E" xmlns="http://www.w3.org/2000/svg">
           <path
-            d="M12.5 0C15.538 0 18 2.462 18 5.5V15H5v-3h10V9H5V6h10v-.5C15 4.119 13.881 3 12.5 3H5V0h7.5zM0 3h3v3H0zm0 6h3v3H0z" />
+            d="M5.667 0C5.667 0.952 6.578 1.951 8 1.951C9.422 1.951 10.333 0.952 10.333 0H12.667C12.667 1.139 12.203 2.131 11.467 2.874C13.577 4.084 15 6.362 15 8.976C15 12.855 11.866 16 8 16C4.134 16 1 12.855 1 8.976C1 6.363 2.422 4.084 4.532 2.874C3.797 2.131 3.333 1.139 3.333 0H5.667ZM8 4.293C5.423 4.293 3.333 6.389 3.333 8.976C3.333 11.562 5.423 13.659 8 13.659C10.577 13.659 12.667 11.562 12.667 8.976C12.667 6.389 10.577 4.293 8 4.293Z" />
         </svg>
-        <span class="motto"><a href="https://github.com/rafikov/watchman">Вахтёр</a> сидит на гите</span>
+        <span class="motto"><a href="https://github.com/rafikov/watchman">Часовой</a> на гите</span>
       </div>
-    </footer>
   </div>
 
   <div id="status-message"></div>
 
   <script>
     const participants = new Map();
-    let isSubscribed = false;
     let subscriptionTimer = null;
     let countdownTimer = null;
 
@@ -89,10 +92,8 @@
     const addBtn = document.getElementById("add-btn");
     const participantsList = document.getElementById("participants-list");
     const updatesLog = document.getElementById("updates-log");
-    const subscribeBtn = document.getElementById("subscribe-btn");
+    const updateBtn = document.getElementById("update-btn");
     const intervalSelect = document.getElementById("update-interval");
-    const soundCheckbox = document.getElementById("sound-enabled");
-    const telegramCheckbox = document.getElementById("telegram-enabled");
     const statusMessage = document.getElementById("status-message");
 
     function saveToStorage() {
@@ -111,14 +112,10 @@
     }
 
     window.addEventListener("load", () => {
-      if (typeof TG_CONFIG === "undefined" || !TG_CONFIG.botToken) {
-        if (telegramCheckbox) {
-          telegramCheckbox.disabled = true;
-          telegramCheckbox.title = "Configure bot in login.js";
-        }
-      }
       loadFromStorage();
       checkUpdates();
+      startAutoUpdate();
+      checkSystemStatus();
     });
 
     async function fetchPeerData(token, login) {
@@ -169,6 +166,11 @@
 
       let className = basic.className || "-";
 
+      const coins =
+        pointsData.coins !== undefined
+          ? pointsData.coins
+          : 0;
+
       const prp =
         pointsData.peerReviewPoints !== undefined
           ? pointsData.peerReviewPoints
@@ -183,6 +185,7 @@
       return {
         login: basic.login,
         className,
+        coins,
         prp,
         level,
         xp,
@@ -301,10 +304,10 @@
         saveToStorage();
         renderParticipants();
         loginInput.value = "";
-        showStatus(`Added ${login}`);
+        showStatus(`Добавлен ${login}`);
       } catch (e) {
         console.error(e);
-        showStatus(`Error: ${e.message}`, true);
+        showStatus(`Ошибка: ${e.message}`, true);
       } finally {
         addBtn.disabled = false;
         addBtn.textContent = "Добавить";
@@ -347,32 +350,46 @@
         card.innerHTML = `
                 <button class="delete-btn delete-btn-card" onclick="removeParticipant('${login}')">Удалить</button>
                 <div class="peer-header">
-                    <span class="peer-login"><a href="https://platform.21-school.ru/profile/${login}" target="_blank" style="text-decoration:none; color:inherit;">${data.login
-          }</a></span>
+                    <span class="peer-login"><a href="https://platform.21-school.ru/profile/${login}" target="_blank" style="text-decoration:none; color:inherit;">${data.login}</a></span>
                     <div class="peer-stats">
-                         <span>PRP: <span class="stat-value">${data.prp
-          }</span></span>
-                         <span class="stat-xp">XP: <span class="stat-value">${data.xp
-          }</span> след.: ${data.expToNext}</span>
-                         <span>Уровень: <span class="stat-value">${data.level
-          }</span></span>
+                         <span class="stat-item" data-type="coins">Мон.: <span class="stat-value">${data.coins}</span></span>
+                         <span class="stat-item" data-type="prp">PRP: <span class="stat-value">${data.prp}</span></span>
+                         <span class="stat-item" data-type="xp">XP: <span class="stat-value">${data.xp}</span></span>
+                         <span class="stat-item" data-type="expToNext">след.: ${data.expToNext}</span>
+                         <span class="stat-item" data-type="level">Уровень: <span class="stat-value">${data.level}</span></span>
                     </div>
                 </div>
                 <div class="peer-subheader">
-                    <span class="peer-status ${statusClass}">${data.status
-          }</span>
-					<span class="peer-class">${data.className}</span>
+                    <span class="peer-status ${statusClass} stat-item" data-type="status">${data.status}</span>
+					          <span class="peer-class">${data.className}</span>
                 </div>
-                <div class="peer-projects" title="Скролл на тачпаде или клик + стрелки &larr;&rarr;">
-                    ${chipsHtml ||
-          '<span style="color:#666; font-size:12px;">No active projects</span>'
-          }
+                <div class="peer-projects stat-item" data-type="projects" title="Скролл на тачпаде или клик + стрелки &larr;&rarr;">
+                    ${chipsHtml || '<span style="color:#666; font-size:12px;">No active projects</span>'}
                 </div>
             `;
 
         participantsList.appendChild(card);
       });
+
+      applyFilters();
     }
+
+    function applyFilters() {
+      const checkboxes = document.querySelectorAll('.settings-panel input[type="checkbox"]');
+      const settings = {};
+      checkboxes.forEach(cb => settings[cb.dataset.target] = cb.checked);
+
+      document.querySelectorAll('.stat-item').forEach(el => {
+        const type = el.dataset.type;
+        if (settings[type] !== undefined) {
+          el.style.display = settings[type] ? '' : 'none';
+        }
+      });
+    }
+
+    document.querySelectorAll('.settings-panel input[type="checkbox"]').forEach(cb => {
+      cb.addEventListener('change', applyFilters);
+    });
 
     async function checkUpdates() {
       if (participants.size === 0) return;
@@ -401,25 +418,37 @@
           const { login, newData } = res;
           const oldData = participants.get(login);
 
-          if (newData.xp !== oldData.xp) {
+          const settings = {};
+          document.querySelectorAll('.settings-panel input[type="checkbox"]').forEach(cb => settings[cb.dataset.target] = cb.checked);
+
+          if (settings.xp && newData.xp !== oldData.xp) {
             const diff = newData.xp - oldData.xp;
             events.push({
               login,
-              text: `XP изменился: ${diff > 0 ? "+" : ""}${diff} (${oldData.xp
+              text: `XP: ${diff > 0 ? "+" : ""}${diff} (${oldData.xp
                 } &rarr; ${newData.xp})`,
             });
           }
 
-          if (newData.prp !== oldData.prp) {
+          if (settings.prp && newData.prp !== oldData.prp) {
             const diff = newData.prp - oldData.prp;
             events.push({
               login,
-              text: `PRP изменился: ${diff > 0 ? "+" : ""}${diff} (${oldData.prp
+              text: `PRP: ${diff > 0 ? "+" : ""}${diff} (${oldData.prp
                 } &rarr; ${newData.prp})`,
             });
           }
 
-          if (newData.status !== oldData.status) {
+          if (settings.coins && newData.coins !== oldData.coins) {
+            const diff = newData.coins - oldData.coins;
+            const diffStr = diff > 0 ? `+${diff}` : `${diff}`;
+            events.push({
+              login,
+              text: `Монетки: ${diffStr} (${oldData.coins} &rarr; ${newData.coins})`
+            });
+          }
+
+          if (settings.status && newData.status !== oldData.status) {
             events.push({
               login,
               text: `Статус: ${oldData.status} &rarr; ${newData.status}`,
@@ -433,7 +462,7 @@
             newData.projects.map((p) => p.rawStatus)
           );
 
-          if (oldProjStr !== newProjStr) {
+          if (settings.projects && oldProjStr !== newProjStr) {
             events.push({ login, text: `Изменения в проектах` });
           }
 
@@ -446,17 +475,16 @@
           saveToStorage();
           renderParticipants();
 
-          if (soundCheckbox.checked) playSound();
-
           events.forEach((ev) => {
             logUpdate(ev.login, ev.text);
           });
 
-          if (telegramCheckbox.checked && events.length > 0) {
-            const msg = `Вахтёр / Пиры. События:\n${events
+          const creds = getStoredCredentials();
+          if (creds && creds.tgToken && creds.tgId && events.length > 0) {
+            const msg = `Часовой / Пиры. События:\n${events
               .map((e) => `${e.login}: ${e.text}`)
               .join("\n")}`;
-            sendTelegramMessage(msg);
+            sendTelegramMessage(msg.replace(/&rarr;/g, "->"));
           }
         }
       } catch (e) {
@@ -483,96 +511,83 @@
       updatesLog.prepend(entry);
     }
 
-    function toggleSubscription() {
-      if (isSubscribed) {
-        clearInterval(subscriptionTimer);
-        clearInterval(countdownTimer);
-        isSubscribed = false;
-        subscribeBtn.textContent = "Подписаться";
-        subscribeBtn.classList.remove("active");
-        intervalSelect.disabled = false;
-      } else {
-        if (participants.size === 0) {
-          showStatus("Add peers first", true);
-          return;
-        }
+    function startAutoUpdate() {
+      if (subscriptionTimer) clearInterval(subscriptionTimer);
+      if (countdownTimer) clearInterval(countdownTimer);
 
-        isSubscribed = true;
-        subscribeBtn.classList.add("active");
-        intervalSelect.disabled = true;
+      const val = intervalSelect.value;
+      if (val === "manual") {
+        updateBtn.textContent = "Обновить";
+        return;
+      }
 
-        if (telegramCheckbox.checked) {
-          sendTelegramMessage(
-            "Включена подписка на события Вахтёр / Пиры"
-          );
-        }
-
-        const minutes = parseInt(intervalSelect.value);
-
-        checkUpdates();
-
-        startCountdown(minutes * 60);
-
-        subscriptionTimer = setInterval(() => {
+      const intervalSec = parseInt(val) * 60;
+      countdownTimer = startCountdownTimer(intervalSec, (remaining) => {
+        updateBtn.textContent = `Обновить (${formatDurationHMS(remaining)})`;
+        if (remaining <= 0) {
           checkUpdates();
-          startCountdown(minutes * 60);
-        }, minutes * 60 * 1000);
+          checkSystemStatus();
+          startAutoUpdate();
+        }
+      }, countdownTimer);
+    }
+
+    function updateDropdownText(seconds) {
+      const selectedOption = intervalSelect.options[intervalSelect.selectedIndex];
+      const baseText = getBaseOptionText(intervalSelect.value);
+      if (intervalSelect.value === "manual") {
+        selectedOption.text = baseText;
+      } else {
+        selectedOption.text = `${baseText} (${formatDurationHMS(seconds)})`;
       }
     }
 
-    const updateButtonText = (seconds) => {
-      subscribeBtn.textContent = formatDurationHMS(seconds);
-    };
-
-    function startCountdown(seconds) {
-      countdownTimer = startCountdownTimer(
-        seconds,
-        updateButtonText,
-        countdownTimer
-      );
+    function getBaseOptionText(value) {
+      switch (value) {
+        case "manual": return "Вручную";
+        case "5": return "Каждые 5 минут";
+        case "15": return "Каждые 15 минут";
+        case "30": return "Каждые 30 минут";
+        case "60": return "Каждый час";
+        default: return "Интервал";
+      }
     }
 
-    const playSound = createSoundPlayer(() => { });
+    function resetDropdownText() {
+      Array.from(intervalSelect.options).forEach(opt => {
+        opt.text = getBaseOptionText(opt.value);
+      });
+    }
+
+    intervalSelect.addEventListener("change", () => {
+      resetDropdownText();
+      startAutoUpdate();
+      notifySubscription("Пиры", intervalSelect.value);
+    });
 
     const showStatus = createStatusHandler(statusMessage);
 
     addBtn.addEventListener("click", addParticipant);
-    subscribeBtn.addEventListener("click", toggleSubscription);
+    updateBtn.addEventListener("click", async () => {
+      updateBtn.classList.add("updating");
+      try {
+        await checkUpdates();
+        await checkSystemStatus();
+      } finally {
+        updateBtn.classList.remove("updating");
+      }
+      if (intervalSelect.value !== "manual") {
+        startAutoUpdate();
+      }
+    });
     loginInput.addEventListener("keypress", (e) => {
       if (e.key === "Enter") addParticipant();
-    });
-    soundCheckbox.addEventListener("change", () => {
-      if (soundCheckbox.checked) {
-        playSound();
-      }
-    });
-
-    telegramCheckbox.addEventListener("change", async () => {
-      if (telegramCheckbox.checked) {
-        if (!TG_CONFIG.botToken || !TG_CONFIG.userId) {
-          telegramCheckbox.checked = false;
-          showStatus("Настройте бота в login.js", true);
-          return;
-        }
-
-        try {
-          telegramCheckbox.disabled = true;
-          const botName = await verifyTelegramBot();
-          showStatus(`Подключен бот: @${botName}`);
-        } catch (error) {
-          telegramCheckbox.checked = false;
-          showStatus(`Ошибка Телеграм: ${error.message}`, true);
-        } finally {
-          telegramCheckbox.disabled = false;
-        }
-      }
     });
 
     window.participants = participants;
     window.saveToStorage = saveToStorage;
     window.logUpdate = logUpdate;
     window.renderParticipants = renderParticipants;
-    window.playSound = playSound;
     window.sendTelegramMessage = sendTelegramMessage;
     window.showStatus = showStatus;
   </script>

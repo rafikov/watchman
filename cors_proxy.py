@@ -11,8 +11,16 @@ ALLOWED_ORIGIN = 'http://localhost:8000'
 
 class SecureCORSProxyHandler(BaseHTTPRequestHandler):
     def handle_request(self):
+        origin = self.headers.get('Origin')
+        allow_origin = ALLOWED_ORIGIN
+        if origin and (origin == 'http://localhost:8000' or origin == 'http://127.0.0.1:8000'):
+            allow_origin = origin
+
         if self.path == '/' or self.path == '':
             self.send_response(200)
+            self.send_header('Access-Control-Allow-Origin', allow_origin)
+            self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, HEAD')
+            self.send_header('Access-Control-Allow-Headers', 'Content-Type, Authorization')
             self.end_headers()
             return
 
@@ -40,7 +48,7 @@ class SecureCORSProxyHandler(BaseHTTPRequestHandler):
             )
 
             self.send_response(response.status_code)
-            self.send_header('Access-Control-Allow-Origin', ALLOWED_ORIGIN)
+            self.send_header('Access-Control-Allow-Origin', allow_origin)
             self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, HEAD')
             self.send_header('Access-Control-Allow-Headers', 'Content-Type, Authorization')
 

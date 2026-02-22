@@ -1,0 +1,1716 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Часовой / Дерево</title>
+  <link rel="icon" type="image/svg+xml"
+    href='data:image/svg+xml,<svg width="16" height="16" viewBox="0 0 16 16" fill="%2369E490" xmlns="http://www.w3.org/2000/svg"><path d="M5.667 0C5.667 0.952 6.578 1.951 8 1.951C9.422 1.951 10.333 0.952 10.333 0H12.667C12.667 1.139 12.203 2.131 11.467 2.874C13.577 4.084 15 6.362 15 8.976C15 12.855 11.866 16 8 16C4.134 16 1 12.855 1 8.976C1 6.363 2.422 4.084 4.532 2.874C3.797 2.131 3.333 1.139 3.333 0H5.667ZM8 4.293C5.423 4.293 3.333 6.389 3.333 8.976C3.333 11.562 5.423 13.659 8 13.659C10.577 13.659 12.667 11.562 12.667 8.976C12.667 6.389 10.577 4.293 8 4.293Z" /></svg>' />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="login.js"></script>
+  <script src="script.js"></script>
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+  <div class="container w-graph">
+    <header>
+      <div class="header-left">
+        <a href="../index.html" onclick="return openUniqueTab(this.href, 'tab_index')" class="logo">Часовой
+          <span>Дерево</span></a><span class="connection-status"></span>
+      </div>
+
+      <div class="controls">
+        <input type="text" id="graph-search" placeholder="Код проекта, название" />
+        <select id="branch-select">
+          <option value="all">Все профессии</option>
+          <option value="bsa">Бизнес аналитика</option>
+          <option value="cyber">Кибербезопасность</option>
+          <option value="ds">Дата-сайенс</option>
+          <option value="ds-bio">Биоинформатика</option>
+          <option value="devops-i">Девопс</option>
+          <option value="pm">Управление проектами</option>
+          <option value="qa">Тестирование ПО</option>
+          <option value="uxui">UX/UI дизайн</option>
+          <option value="development">Разработка</option>
+        </select>
+
+        <div class="toolbar-actions">
+          <button class="toolbar-btn secondary" id="fit-view">Центр</button>
+          <button class="toolbar-btn secondary" id="toggle-collapse">Свернуть</button>
+          <button class="toolbar-btn" id="zoom-out">-</button>
+          <button class="toolbar-btn" id="zoom-in">+</button>
+        </div>
+      </div>
+
+    </header>
+    <div class="graph-shell">
+      <div class="graph-root" id="graph-root">
+        <div class="graph-viewport" id="graph-viewport">
+          <svg id="graph-edges"></svg>
+          <div id="graph-nodes"></div>
+        </div>
+      </div>
+    </div>
+    <footer class="page-footer">
+      <div class="footer-left">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="#7D838E" xmlns="http://www.w3.org/2000/svg">
+          <path
+            d="M5.667 0C5.667 0.952 6.578 1.951 8 1.951C9.422 1.951 10.333 0.952 10.333 0H12.667C12.667 1.139 12.203 2.131 11.467 2.874C13.577 4.084 15 6.362 15 8.976C15 12.855 11.866 16 8 16C4.134 16 1 12.855 1 8.976C1 6.363 2.422 4.084 4.532 2.874C3.797 2.131 3.333 1.139 3.333 0H5.667ZM8 4.293C5.423 4.293 3.333 6.389 3.333 8.976C3.333 11.562 5.423 13.659 8 13.659C10.577 13.659 12.667 11.562 12.667 8.976C12.667 6.389 10.577 4.293 8 4.293Z" />
+        </svg>
+        <span class="motto"><a href="https://github.com/rafikov/watchman">Часовой</a> на гите</span>
+      </div>
+    </footer>
+  </div>
+  <div id="status-message"></div>
+  <div id="project-tooltip" class="graph-tooltip"></div>
+  <script>
+    const statusMessage = document.getElementById("status-message");
+    const showStatus = createStatusHandler(statusMessage, { setColor: false });
+    const graphRoot = document.getElementById("graph-root");
+    const graphViewport = document.getElementById("graph-viewport");
+    const graphEdges = document.getElementById("graph-edges");
+    const graphNodes = document.getElementById("graph-nodes");
+    const searchInput = document.getElementById("graph-search");
+    const branchSelect = document.getElementById("branch-select");
+    const zoomInBtn = document.getElementById("zoom-in");
+    const zoomOutBtn = document.getElementById("zoom-out");
+    const fitViewBtn = document.getElementById("fit-view");
+    const collapseToggleBtn = document.getElementById("toggle-collapse");
+    const projectTooltip = document.getElementById("project-tooltip");
+
+    const DATA_URL = "../schoolmap/v1-graph-response.json";
+    const nodeWidth = 280;
+    const compactNodeWidth = 220;
+    const headerHeight = 34;
+    const nodePadding = 10;
+    const itemHeight = 26;
+    const levelGap = 140;
+    const nodeGap = 80;
+    const compactNodeGap = 30;
+    const branchGap = 160;
+    const minScale = 0.3;
+    const maxScale = 2.2;
+    const GRAPH_CACHE_KEY = "watchman_graph_cache_v1";
+
+    const graphLoading = document.createElement("div");
+    graphLoading.className = "graph-loading";
+    graphLoading.textContent = "Загрузка...";
+
+    function showGraphLoading() {
+      if (!graphLoading.parentNode) {
+        graphRoot.appendChild(graphLoading);
+      }
+    }
+
+    function hideGraphLoading() {
+      if (graphLoading.parentNode) {
+        graphLoading.parentNode.removeChild(graphLoading);
+      }
+    }
+
+    function loadGraphCache() {
+      try {
+        const raw = localStorage.getItem(GRAPH_CACHE_KEY);
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        if (!parsed || typeof parsed !== "object") return null;
+        if (!Array.isArray(parsed.nodes) || !Array.isArray(parsed.edges)) return null;
+        return parsed;
+      } catch (e) {
+        return null;
+      }
+    }
+
+    function saveGraphCache(data) {
+      try {
+        localStorage.setItem(GRAPH_CACHE_KEY, JSON.stringify(data));
+      } catch (e) { }
+    }
+
+    let layoutNodes = [];
+    let layoutEdges = [];
+    let layoutBounds = { width: 0, height: 0 };
+    let view = { x: 0, y: 0, scale: 1 };
+    let isPanning = false;
+    let panStart = { x: 0, y: 0, viewX: 0, viewY: 0 };
+    let edgeUpdateFrame = null;
+    let edgeResizeObserver = null;
+    let allNodesCollapsed = false;
+    let activeProjectElement = null;
+    const projectDetailsCache = new Map();
+    const courseDetailsCache = new Map();
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function hideProjectTooltip() {
+      projectTooltip.classList.remove("active");
+      projectTooltip.innerHTML = "";
+      projectTooltip.dataset.projectId = "";
+      if (activeProjectElement) {
+        activeProjectElement.classList.remove("selected");
+        activeProjectElement = null;
+      }
+    }
+
+    function extractXp(details) {
+      if (!details || typeof details !== "object") return null;
+      const candidates = [
+        details.xp,
+        details.expValue,
+        details.exp,
+        details.rewardXp,
+        details.points,
+        details.experience,
+        details.rewardExp,
+      ];
+      const found = candidates.find((value) => value !== undefined && value !== null);
+      return found ?? null;
+    }
+
+    function statusColor(status) {
+      const s = String(status || "").toUpperCase();
+      if (
+        s.includes("IN_REVIEWS") ||
+        s.includes("REVIEW") ||
+        s.includes("PEER_REVIEW") ||
+        s.includes("CHECKING") ||
+        s.includes("WAITING_FOR_CORRECTION")
+      )
+        return "#fff3cd";
+      if (
+        s.includes("IN_PROGRESS") ||
+        s.includes("IN PROGRESS") ||
+        s.includes("REGISTERED") ||
+        s.includes("ASSIGNED")
+      )
+        return "#fff3cd";
+      if (s.includes("ACCEPTED")) return "#d1e7dd";
+      if (s.includes("FAILED")) return "#f8d7da";
+      return "#eee";
+    }
+
+    function extractRequiredItems(details) {
+      const required = [];
+      if (!details || typeof details !== "object") return required;
+
+      const groups = Array.isArray(details.startConditions) ? details.startConditions : [];
+
+      groups.forEach((group) => {
+        if (!group || typeof group !== "object") return;
+        const rules = Array.isArray(group.rulesInGroup) ? group.rulesInGroup : [];
+        rules.forEach((rule) => {
+          const value = rule && rule.value;
+          if (!value || typeof value !== "object") return;
+          const fieldName = String(value.fieldName || "");
+          if (!fieldName) return;
+          if (!fieldName.toLowerCase().includes("project")) return;
+
+          const status = String(value.subFieldValue || "");
+          const list = Array.isArray(value.value) ? value.value : [];
+          list.forEach((entry) => {
+            if (!entry || typeof entry !== "object") return;
+            const id = entry.key;
+            if (id === undefined || id === null || String(id).trim() === "") return;
+            required.push({
+              entityId: id,
+              title: entry.value || "",
+              status,
+            });
+          });
+        });
+      });
+
+      const seen = new Set();
+      return required.filter((entry) => {
+        const key = `${String(entry.entityId)}|${String(entry.status)}|${String(entry.title)}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+    }
+
+    function renderItemTooltip({ item, nodeLabel, details, loading, error }) {
+      const entityType = item.entityType || "";
+      const title =
+        (details && (details.title || details.name)) ||
+        item.code ||
+        (entityType === "COURSE" ? "Курс" : "Проект");
+      const xp = extractXp(details);
+      const description =
+        (details &&
+          (details.description ||
+            details.brief ||
+            details.summary ||
+            details.shortDescription ||
+            details.longDescription ||
+            details.task ||
+            details.about ||
+            details.text ||
+            details.content)) ||
+        "";
+      const requiredItems = extractRequiredItems(details);
+
+      const info = [
+        item.entityId ? `ID: ${escapeHtml(item.entityId)}` : "",
+        xp !== null && xp !== undefined && xp !== "" ? `XP: ${escapeHtml(xp)}` : "",
+      ].filter(Boolean);
+
+      const descriptionHtml = description
+        ? `<div style="font-size: 12px; white-space: pre-wrap;">${escapeHtml(description)}</div>`
+        : error
+          ? `<div style="color: var(--text-dim); font-size: 12px;">Недоступно</div>`
+          : `<div style="color: var(--text-dim); font-size: 12px;">—</div>`;
+
+      const requirementHtml = requiredItems.length
+        ? requiredItems
+          .map((req) => {
+            const name = escapeHtml(req.title || req.entityId || "");
+            const badgeText = escapeHtml(req.status || "REQUIRED");
+            const badgeColor = statusColor(req.status || "");
+            return `<div class="req-row"><span class="req-name">${name}</span><span class="status-badge" style="background: ${badgeColor};">${badgeText}</span></div>`;
+          })
+          .join("")
+        : error
+          ? `<div style="color: var(--text-dim); font-size: 12px;">Недоступно</div>`
+          : `<div style="color: var(--text-dim); font-size: 12px;">—</div>`;
+
+      const statusLine = error
+        ? `<div style="color: #b00020; font-size: 12px; margin-bottom: 8px;">${escapeHtml(error)}</div>`
+        : loading
+          ? `<div style="color: var(--text-dim); font-size: 12px; margin-bottom: 8px;">Загрузка...</div>`
+          : "";
+
+      projectTooltip.innerHTML = `
+          <h3>${escapeHtml(title)}</h3>
+          ${statusLine}
+          <div class="meta">${info.map((line) => `<span>${line}</span>`).join("")}</div>
+          <div class="section-title">Описание</div>
+          ${descriptionHtml}
+          <div class="section-title">Требования</div>
+          ${requirementHtml}
+        `;
+    }
+
+    async function fetchProjectDetails(projectId) {
+      const key = String(projectId);
+      if (projectDetailsCache.has(key)) return projectDetailsCache.get(key);
+      const token = await getAccessToken();
+      const creds = getStoredCredentials();
+      const login = creds ? creds.s21Login : null;
+
+      const fetchPublic = async () => {
+        const url = `${BASE_URL}/projects/${encodeURIComponent(key)}`;
+        const res = await fetch(url, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: "application/json",
+          },
+        });
+        if (!res.ok) {
+          let details = "";
+          try {
+            const body = await res.json();
+            details = body && typeof body === "object" ? body.message || JSON.stringify(body) : "";
+          } catch (e) { }
+          throw new Error(`HTTP ${res.status}${details ? `: ${details}` : ""}`);
+        }
+        return await res.json();
+      };
+
+      const fetchParticipant = async () => {
+        if (!login) throw new Error("No login available for fallback");
+        try {
+          const url = `${BASE_URL}/participants/${login}/projects/${encodeURIComponent(key)}`;
+          const res = await fetch(url, {
+            headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
+          });
+          if (res.ok) return await res.json();
+        } catch (e) { }
+
+        const url = `${BASE_URL}/participants/${login}/projects?limit=100`;
+        const res = await fetch(url, {
+          headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
+        });
+        if (!res.ok) throw new Error("Participant projects fetch failed");
+        const body = await res.json();
+        const projects = body.projects || [];
+        const project = projects.find(p => String(p.id) === key || String(p.projectId) === key);
+        if (!project) throw new Error("Project not found in participant list");
+        return project;
+      };
+
+      let lastError = null;
+      for (let attempt = 0; attempt < 3; attempt++) {
+        try {
+          try {
+            const data = await fetchPublic();
+            projectDetailsCache.set(key, data);
+            return data;
+          } catch (e) {
+            const msg = String(e && e.message ? e.message : e);
+            if (msg.includes("HTTP 5") && login) {
+              try {
+                const data = await fetchParticipant();
+                projectDetailsCache.set(key, data);
+                return data;
+              } catch (pe) {
+                throw e;
+              }
+            }
+            throw e;
+          }
+        } catch (e) {
+          lastError = e;
+          const msg = String(e && e.message ? e.message : e);
+          const is5xx = msg.includes("HTTP 5");
+          if (!is5xx || attempt === 2) break;
+          await new Promise((r) => setTimeout(r, attempt === 0 ? 250 : 800));
+        }
+      }
+      throw lastError || new Error("Не удалось загрузить данные");
+    }
+
+    async function fetchCourseDetails(courseId) {
+      const key = String(courseId);
+      if (courseDetailsCache.has(key)) return courseDetailsCache.get(key);
+      const token = await getAccessToken();
+      const res = await fetch(`${BASE_URL}/courses/${encodeURIComponent(key)}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) {
+        let details = "";
+        try {
+          const body = await res.json();
+          details = body && typeof body === "object" ? body.message || JSON.stringify(body) : "";
+        } catch (e) { }
+        throw new Error(`HTTP ${res.status}${details ? `: ${details}` : ""}`);
+      }
+      const data = await res.json();
+      courseDetailsCache.set(key, data);
+      return data;
+    }
+
+    async function showProjectTooltip(e, row, item, nodeLabel) {
+      e.preventDefault();
+      e.stopPropagation();
+
+      if (activeProjectElement && activeProjectElement !== row) {
+        activeProjectElement.classList.remove("selected");
+      }
+      activeProjectElement = row;
+      activeProjectElement.classList.add("selected");
+
+      const rect = row.getBoundingClientRect();
+      const tooltipWidth = 360;
+      const padding = 12;
+      let left = rect.right + window.scrollX + padding;
+      const maxLeft = window.scrollX + window.innerWidth - tooltipWidth - padding;
+      left = Math.max(padding, Math.min(left, maxLeft));
+
+      let top = rect.top + window.scrollY - 10;
+      const maxTop = window.scrollY + window.innerHeight - 80;
+      top = Math.max(padding, Math.min(top, maxTop));
+
+      projectTooltip.style.left = `${left}px`;
+      projectTooltip.style.top = `${top}px`;
+      projectTooltip.classList.add("active");
+      projectTooltip.dataset.projectId = `${String(item.entityType || "")}:${String(
+        item.entityId || ""
+      )}`;
+
+      renderItemTooltip({ item, nodeLabel, loading: Boolean(item.entityId), details: null });
+
+      if (!item.entityId) return;
+
+      try {
+        const cacheKey = `${String(item.entityType || "")}:${String(item.entityId || "")}`;
+        const details =
+          item.entityType === "COURSE"
+            ? await fetchCourseDetails(item.entityId)
+            : await fetchProjectDetails(item.entityId);
+        if (projectTooltip.dataset.projectId !== cacheKey) return;
+        renderItemTooltip({ item, nodeLabel, details, loading: false });
+      } catch (err) {
+        const cacheKey = `${String(item.entityType || "")}:${String(item.entityId || "")}`;
+        if (projectTooltip.dataset.projectId !== cacheKey) return;
+        renderItemTooltip({
+          item,
+          nodeLabel,
+          details: null,
+          loading: false,
+          error: err && err.message ? err.message : "Не удалось загрузить данные",
+        });
+      }
+    }
+
+    function syncCollapseToggleLabel() {
+      if (!collapseToggleBtn) return;
+      collapseToggleBtn.textContent = allNodesCollapsed ? "Развернуть" : "Свернуть";
+    }
+
+    function setAllNodesCollapsed(nextCollapsed) {
+      allNodesCollapsed = Boolean(nextCollapsed);
+      document.querySelectorAll(".graph-node").forEach((nodeEl) => {
+        nodeEl.classList.toggle("collapsed", allNodesCollapsed);
+      });
+      syncCollapseToggleLabel();
+      hideProjectTooltip();
+      scheduleEdgeUpdate();
+    }
+
+    function scheduleEdgeUpdate() {
+      if (edgeUpdateFrame) return;
+      edgeUpdateFrame = requestAnimationFrame(() => {
+        edgeUpdateFrame = null;
+        renderEdges();
+        applyBranchFilter(branchSelect.value || "all");
+      });
+    }
+
+    function applyTransform() {
+      graphViewport.style.transform = `translate(${view.x}px, ${view.y}px) scale(${view.scale})`;
+    }
+
+    function clamp(value, min, max) {
+      return Math.max(min, Math.min(max, value));
+    }
+
+    function fitView() {
+      if (!layoutBounds.width || !layoutBounds.height) return;
+      hideProjectTooltip();
+      const rect = graphRoot.getBoundingClientRect();
+      const padding = 80;
+      const scaleX = (rect.width - padding * 2) / layoutBounds.width;
+      const scaleY = (rect.height - padding * 2) / layoutBounds.height;
+      view.scale = clamp(Math.min(scaleX, scaleY, 1), minScale, maxScale);
+      view.x = (rect.width - layoutBounds.width * view.scale) / 2;
+      view.y = padding;
+      applyTransform();
+    }
+
+    function focusOnNode(node) {
+      const rect = graphRoot.getBoundingClientRect();
+      const targetScale = clamp(1.1, minScale, maxScale);
+      const targetX = rect.width / 2 - (node.x + node.width / 2) * targetScale;
+      const targetY = rect.height / 2 - (node.y + node.height / 2) * targetScale;
+      view.scale = targetScale;
+      view.x = targetX;
+      view.y = targetY;
+      applyTransform();
+    }
+
+    const branchDefinitions = [
+      {
+        key: "bsa",
+        label: "BSA - I",
+        roots: ["BSA - I"],
+        humanReadableLabel: "Бизнес аналитика",
+      },
+      {
+        key: "cyber",
+        label: "Cybersecurity-I",
+        roots: ["Cybersecurity-I"],
+        humanReadableLabel: "Кибербезопасность",
+      },
+      {
+        key: "ds",
+        label: "Data Science - I",
+        roots: ["Data Science - I"],
+        humanReadableLabel: "Дата-сайенс",
+      },
+      {
+        key: "ds-bio",
+        label: "Data Science (BIO)",
+        roots: ["Data Science (BIO)"],
+        humanReadableLabel: "Биоинформатика",
+      },
+      {
+        key: "devops-i",
+        label: "DevOps-I",
+        roots: ["DevOps-I"],
+        humanReadableLabel: "Девопс",
+      },
+      {
+        key: "pm",
+        label: "Project manager - I",
+        roots: ["Project manager - I"],
+        humanReadableLabel: "Управление проектами",
+      },
+      {
+        key: "qa",
+        label: "QA - I",
+        roots: ["QA - I"],
+        humanReadableLabel: "Тестирование ПО",
+      },
+      {
+        key: "uxui",
+        label: "UX/UI - I",
+        roots: ["UX/UI - I"],
+        humanReadableLabel: "UX/UI дизайн",
+      },
+      {
+        key: "development",
+        label: "DEVELOPMENT",
+        roots: ["С - I"],
+        humanReadableLabel: "Разработка",
+        extraLabels: [
+          "SQL - I",
+          "JS Bootcamp-I",
+          "Java Bootcamp-I",
+          "Python Bootcamp-I",
+          "Go Bootcamp-I",
+          "C# Bootcamp-I",
+          "Kotlin Bootcamp - I",
+          "Swift Bootcamp-I",
+          "C - II",
+          "CPP-I",
+          "DevOps",
+          "GameDev",
+          "Frontend",
+          "Backend",
+          "Mobile Android",
+          "Mobile IOS",
+        ],
+      },
+    ];
+
+    const professionOrder = [
+      { label: "BSA - I", key: "bsa" },
+      { label: "Cybersecurity-I", key: "cyber" },
+      { label: "Data Science - I", key: "ds" },
+      { label: "Data Science (BIO)", key: "ds-bio" },
+      { label: "DevOps-I", key: "devops-i" },
+      { label: "Project manager - I", key: "pm" },
+      { label: "QA - I", key: "qa" },
+      { label: "UX/UI - I", key: "uxui" },
+      { label: "С - I", key: "development" },
+    ];
+    const sharedLabels = new Set(["С - I", "SQL - I"]);
+    const devBootcamps = [
+      "JS Bootcamp-I",
+      "Java Bootcamp-I",
+      "Python Bootcamp-I",
+      "Go Bootcamp-I",
+      "Kotlin Bootcamp - I",
+      "Swift Bootcamp-I",
+      "C - II",
+      "C# Bootcamp-I",
+      "CPP-I",
+    ];
+    const cppStackLabels = [
+      "CPP-I",
+      "CPP-II",
+      "A-I CPP",
+      "A-II CPP",
+      "SQL-II",
+      "DO (CPP)",
+    ];
+    const cppColumnLabels = new Set([
+      "C - II",
+      "CPP-I",
+      "CPP-II",
+      "A-I CPP",
+      "A-II CPP",
+      "SQL-II",
+      "DO (CPP)",
+    ]);
+    const sqlPlaceholderLabels = new Set([
+      "SQL (BSA)",
+      "SQL (DO)",
+      "SQL (QA)",
+    ]);
+    const forcePlaceholderLabels = new Set([
+      "Data Science (BIO)",
+      "Python Bootcamp (DO)",
+      "Java Bootcamp QA",
+    ]);
+    const forceNormalLabels = new Set([
+      "Data Science - I",
+      "DevOps",
+    ]);
+    const devLanguageOrder = [
+      "js",
+      "java",
+      "python",
+      "go",
+      "kotlin",
+      "swift",
+      "csharp",
+      "c",
+      "cpp",
+      "misc",
+    ];
+    const devSpecializations = [
+      "GameDev",
+      "Frontend",
+      "Backend",
+      "Mobile Android",
+      "Mobile IOS",
+    ];
+
+    function buildLayout(raw) {
+      const nodes = raw.nodes || [];
+      const edges = raw.edges || [];
+      const nodeMap = new Map();
+      const labelMap = new Map();
+      const adjacency = new Map();
+      const duplicateNodeIds = new Set();
+      const nodeSignatureIndex = new Map();
+
+      nodes.forEach((node) => {
+        const items = node.items && node.items.length ? node.items : [];
+        if (!items.length) return;
+        const signature = items
+          .map((item) => `${item.entityType || ""}:${item.entityId || ""}`)
+          .sort()
+          .join("|");
+        if (!signature) return;
+        if (nodeSignatureIndex.has(signature)) {
+          duplicateNodeIds.add(node.id);
+        } else {
+          nodeSignatureIndex.set(signature, node.id);
+        }
+      });
+
+      nodes.forEach((node) => {
+        nodeMap.set(node.id, node);
+        if (!labelMap.has(node.label)) {
+          labelMap.set(node.label, node.id);
+        }
+        adjacency.set(node.id, []);
+      });
+
+      edges.forEach((edge) => {
+        if (nodeMap.has(edge.source) && nodeMap.has(edge.target)) {
+          adjacency.get(edge.source).push(edge.target);
+        }
+      });
+
+      layoutNodes = [];
+      const positioned = new Map();
+
+      function getNodeHeight(node) {
+        const itemList = node.items && node.items.length ? node.items : [];
+        return headerHeight + nodePadding * 2 + itemList.length * itemHeight;
+      }
+
+      function isCompactNode(label) {
+        if (cppColumnLabels.has(label)) return false;
+        if (devBootcamps.includes(label)) return true;
+        if (/^(A-I|AP-I)\b/.test(label)) return true;
+        if (/(JS|Java|C#|Go|Python|Swift|Kotlin)-II\b/.test(label)) return true;
+        return false;
+      }
+
+      function getNodeWidth(node) {
+        return isCompactNode(node.label) ? compactNodeWidth : nodeWidth;
+      }
+
+      function placeNode(id, x, y, branchKey) {
+        if (positioned.has(id)) return positioned.get(id);
+        const node = nodeMap.get(id);
+        if (!node) return null;
+        const width = getNodeWidth(node);
+        const height = getNodeHeight(node);
+        const isDuplicate = duplicateNodeIds.has(node.id);
+        const isPlaceholder =
+          (isDuplicate && !forceNormalLabels.has(node.label)) ||
+          sqlPlaceholderLabels.has(node.label) ||
+          forcePlaceholderLabels.has(node.label);
+        const entry = {
+          id: node.id,
+          label: node.label,
+          items: node.items && node.items.length ? node.items : [],
+          x,
+          y,
+          width,
+          height,
+          branchKey,
+          compact: width !== nodeWidth,
+          placeholder: isPlaceholder,
+        };
+        layoutNodes.push(entry);
+        positioned.set(id, entry);
+        return entry;
+      }
+
+      const columnX = new Map();
+      let topRowHeight = 0;
+      const devColumnOffset = (nodeWidth + nodeGap) * 3;
+      professionOrder.forEach((entry, index) => {
+        const id = labelMap.get(entry.label);
+        const node = id ? nodeMap.get(id) : null;
+        if (!node) return;
+        let x = index * (nodeWidth + nodeGap);
+        if (entry.key === "development") {
+          x += devColumnOffset;
+        }
+        const y = 0;
+        const branchKey = sharedLabels.has(node.label) ? "shared" : entry.key;
+        const placed = placeNode(node.id, x, y, branchKey);
+        columnX.set(entry.key, x);
+        if (placed) topRowHeight = Math.max(topRowHeight, placed.height);
+      });
+
+      const topRootIds = new Set();
+      professionOrder.forEach((entry) => {
+        const id = labelMap.get(entry.label);
+        if (id) topRootIds.add(id);
+      });
+
+      function buildLevels(rootId, options = {}) {
+        const blockedTargets = options.blockedTargets || new Set();
+        const levels = new Map();
+        const queue = [];
+        if (!rootId) return levels;
+        levels.set(rootId, 0);
+        queue.push(rootId);
+        while (queue.length) {
+          const current = queue.shift();
+          const currentLevel = levels.get(current) || 0;
+          (adjacency.get(current) || []).forEach((targetId) => {
+            if (blockedTargets.has(targetId)) return;
+            if (targetId === rootId) return;
+            if (!levels.has(targetId)) {
+              levels.set(targetId, currentLevel + 1);
+              queue.push(targetId);
+            }
+          });
+        }
+        return levels;
+      }
+
+      const devRootId = labelMap.get("С - I");
+      const devRootX = columnX.get("development") || 0;
+      const devBlocked = new Set(
+        Array.from(topRootIds).filter((id) => id !== devRootId)
+      );
+      const devLevels = buildLevels(devRootId, { blockedTargets: devBlocked });
+      let devY = topRowHeight + levelGap;
+      const devLevelKeys = Array.from(devLevels.entries())
+        .filter(([, level]) => level > 0)
+        .map(([id, level]) => ({ id, level }))
+        .sort((a, b) => a.level - b.level || a.id.localeCompare(b.id));
+
+      const sqlNodeId = labelMap.get("SQL - I");
+      const devRootEntry = devRootId ? positioned.get(devRootId) : null;
+      if (sqlNodeId && devLevels.has(sqlNodeId)) {
+        const sqlNode = nodeMap.get(sqlNodeId);
+        if (sqlNode) {
+          const sqlEntry = placeNode(sqlNode.id, devRootX, devY, "shared");
+          if (sqlEntry && devRootEntry) {
+            devRootEntry.x = sqlEntry.x;
+          }
+          devY += getNodeHeight(sqlNode) + levelGap;
+        }
+      }
+      const sqlEntry = sqlNodeId ? positioned.get(sqlNodeId) : null;
+
+      function getLanguageKey(label) {
+        if (cppStackLabels.includes(label)) return "cpp";
+        if (/CPP/i.test(label)) return "cpp";
+        if (/^C\s*-\s*/.test(label)) return "c";
+        if (/C#/.test(label)) return "csharp";
+        if (/JavaScript|JS\b/i.test(label)) return "js";
+        if (/Java\b/i.test(label)) return "java";
+        if (/Python\b/i.test(label)) return "python";
+        if (/Go\b/i.test(label)) return "go";
+        if (/Kotlin\b/i.test(label)) return "kotlin";
+        if (/Swift\b/i.test(label)) return "swift";
+        return "misc";
+      }
+
+      const devColumns = new Map();
+      devLevelKeys.forEach(({ id, level }) => {
+        if (id === sqlNodeId) return;
+        const node = nodeMap.get(id);
+        if (!node) return;
+        const key = getLanguageKey(node.label);
+        if (!devColumns.has(key)) devColumns.set(key, []);
+        devColumns.get(key).push({ node, level });
+      });
+
+      const orderedColumns = devLanguageOrder
+        .map((key) => ({ key, items: devColumns.get(key) || [] }))
+        .filter((entry) => entry.items.length);
+
+      const columnWidths = orderedColumns.map((entry) =>
+        Math.max(
+          compactNodeWidth,
+          ...entry.items.map((item) => getNodeWidth(item.node))
+        )
+      );
+      const columnGap = compactNodeGap;
+      const totalColumnWidth =
+        columnWidths.reduce((sum, width) => sum + width, 0) +
+        (orderedColumns.length - 1) * columnGap;
+      const startX = devRootX - totalColumnWidth / 2;
+      const devColumnX = new Map();
+      const devColumnWidth = new Map();
+      let cursorX = startX;
+      orderedColumns.forEach((entry, index) => {
+        devColumnWidth.set(entry.key, columnWidths[index]);
+        devColumnX.set(entry.key, cursorX);
+        cursorX += columnWidths[index] + columnGap;
+      });
+
+      const cppOrder = new Map(
+        cppStackLabels.map((label, index) => [label, index])
+      );
+      const csharpOrder = new Map(
+        [
+          "C# Bootcamp-I",
+          "C#-II Backend",
+          "AP-I C#",
+          "A-I C#",
+        ].map((label, index) => [label, index])
+      );
+      const devLockedKeys = new Set(
+        devLanguageOrder.filter((key) => key !== "misc")
+      );
+      const devLockedIds = new Set();
+
+      const c2NodeId = labelMap.get("C - II");
+      const c2Node = c2NodeId ? nodeMap.get(c2NodeId) : null;
+      const cppYOffset = c2Node ? getNodeHeight(c2Node) + levelGap : 0;
+
+      orderedColumns.forEach((entry) => {
+        const x = devColumnX.get(entry.key) || devRootX;
+        const columnWidth = devColumnWidth.get(entry.key) || nodeWidth;
+        const columnCenter = x + columnWidth / 2;
+        const items = entry.items.slice();
+        if (entry.key === "cpp") {
+          items.sort((a, b) => {
+            const orderA = cppOrder.has(a.node.label)
+              ? cppOrder.get(a.node.label)
+              : 999;
+            const orderB = cppOrder.has(b.node.label)
+              ? cppOrder.get(b.node.label)
+              : 999;
+            if (orderA !== orderB) return orderA - orderB;
+            return a.node.label.localeCompare(b.node.label);
+          });
+        } else if (entry.key === "csharp") {
+          items.sort((a, b) => {
+            const orderA = csharpOrder.has(a.node.label)
+              ? csharpOrder.get(a.node.label)
+              : 999;
+            const orderB = csharpOrder.has(b.node.label)
+              ? csharpOrder.get(b.node.label)
+              : 999;
+            if (orderA !== orderB) return orderA - orderB;
+            return a.node.label.localeCompare(b.node.label);
+          });
+        } else {
+          items.sort((a, b) => a.level - b.level || a.node.label.localeCompare(b.node.label));
+        }
+        let columnY = devY;
+        if (entry.key === "cpp") {
+          columnY += cppYOffset;
+        }
+        items.forEach((item) => {
+          const branchKey = sharedLabels.has(item.node.label)
+            ? "shared"
+            : "development";
+          const itemWidth = getNodeWidth(item.node);
+          const itemX =
+            entry.key === "cpp" ? columnCenter - itemWidth / 2 : x;
+          placeNode(item.node.id, itemX, columnY, branchKey);
+          if (devLockedKeys.has(entry.key)) devLockedIds.add(item.node.id);
+          columnY += getNodeHeight(item.node) + levelGap;
+        });
+      });
+
+      function isCppLabel(label) {
+        if (cppStackLabels.includes(label)) return true;
+        return /CPP/i.test(label);
+      }
+
+      const devOpsId = labelMap.get("DevOps");
+      if (devOpsId && devLevels.has(devOpsId)) {
+        const devEntries = Array.from(positioned.values()).filter((entry) =>
+          devLevels.has(entry.id)
+        );
+        let devMinX = devRootX;
+        let devMaxX = devRootX + nodeWidth;
+        if (devEntries.length) {
+          devMinX = Math.min(...devEntries.map((entry) => entry.x));
+          devMaxX = Math.max(
+            ...devEntries.map((entry) => entry.x + entry.width)
+          );
+        }
+        const devCenterX = sqlEntry
+          ? sqlEntry.x + sqlEntry.width / 2
+          : (devMinX + devMaxX) / 2;
+        const devOpsTargets = (adjacency.get(devOpsId) || []).filter((id) =>
+          devLevels.has(id)
+        );
+        const devOpsTargetSet = new Set(devOpsTargets);
+        let maxBottom = 0;
+        devEntries.forEach((entry) => {
+          if (entry.id === devOpsId) return;
+          if (devOpsTargetSet.has(entry.id)) return;
+          if (isCppLabel(entry.label)) return;
+          maxBottom = Math.max(maxBottom, entry.y + entry.height);
+        });
+        const devOpsNode = nodeMap.get(devOpsId);
+        const devOpsEntry = positioned.get(devOpsId);
+        const devOpsWidth = devOpsEntry
+          ? devOpsEntry.width
+          : devOpsNode
+            ? getNodeWidth(devOpsNode)
+            : nodeWidth;
+        const devOpsHeight = devOpsEntry
+          ? devOpsEntry.height
+          : devOpsNode
+            ? getNodeHeight(devOpsNode)
+            : headerHeight;
+        const devOpsY = maxBottom + levelGap * 0.7;
+        if (devOpsEntry) {
+          devOpsEntry.x = sqlEntry ? sqlEntry.x : devCenterX - devOpsEntry.width / 2;
+          devOpsEntry.y = devOpsY;
+        } else {
+          const devOpsX = sqlEntry ? sqlEntry.x : devCenterX - devOpsWidth / 2;
+          placeNode(devOpsId, devOpsX, devOpsY, "development");
+        }
+        devLockedIds.add(devOpsId);
+
+        const devOpsChildren = devOpsTargets
+          .map((id) => nodeMap.get(id))
+          .filter((node) => node);
+        if (devOpsChildren.length) {
+          const widths = devOpsChildren.map((node) => getNodeWidth(node));
+          const totalWidth =
+            widths.reduce((sum, width) => sum + width, 0) +
+            (devOpsChildren.length - 1) * compactNodeGap;
+          let childX = devCenterX - totalWidth / 2;
+          const childY = devOpsY + devOpsHeight + levelGap;
+          devOpsChildren.forEach((node, index) => {
+            const entry = positioned.get(node.id);
+            if (entry) {
+              entry.x = childX;
+              entry.y = childY;
+            } else {
+              placeNode(node.id, childX, childY, "development");
+            }
+            devLockedIds.add(node.id);
+            childX += widths[index] + compactNodeGap;
+          });
+        }
+      }
+
+      const nonDevLevelGap = 90;
+      professionOrder
+        .filter((entry) => entry.key !== "development")
+        .forEach((entry) => {
+          const rootId = labelMap.get(entry.label);
+          if (!rootId) return;
+          const blockedTargets = new Set(
+            Array.from(topRootIds).filter((id) => id !== rootId)
+          );
+          const levels = buildLevels(rootId, { blockedTargets });
+          const sorted = Array.from(levels.entries())
+            .filter(([, level]) => level > 0)
+            .map(([id, level]) => ({
+              node: nodeMap.get(id),
+              level,
+            }))
+            .filter((item) => item.node)
+            .filter((item) => !sharedLabels.has(item.node.label))
+            .filter((item) => !topRootIds.has(item.node.id))
+            .sort((a, b) => a.level - b.level || a.node.label.localeCompare(b.node.label));
+
+          let currentY = getNodeHeight(nodeMap.get(rootId)) + nonDevLevelGap;
+          sorted.forEach((item) => {
+            if (positioned.has(item.node.id)) return;
+            placeNode(item.node.id, columnX.get(entry.key) || 0, currentY, entry.key);
+            currentY += getNodeHeight(item.node) + nonDevLevelGap;
+          });
+        });
+
+      const nodeById = new Map(layoutNodes.map((node) => [node.id, node]));
+      const devIds = new Set(devLevels.keys());
+      layoutNodes.forEach((node) => {
+        if (!devIds.has(node.id)) return;
+        if (devLockedIds.has(node.id)) return;
+        const targets = (adjacency.get(node.id) || [])
+          .map((targetId) => nodeById.get(targetId))
+          .filter((target) => target && devIds.has(target.id));
+        if (targets.length < 2) return;
+        const averageCenter =
+          targets.reduce((sum, target) => sum + target.x + target.width / 2, 0) /
+          targets.length;
+        node.x = averageCenter - node.width / 2;
+      });
+
+      function alignColumnByLabel(baseLabel, matcher) {
+        const base = layoutNodes.find((node) => node.label === baseLabel);
+        if (!base) return;
+        layoutNodes.forEach((node) => {
+          if (!devIds.has(node.id)) return;
+          if (node.id === base.id) return;
+          if (!matcher(node.label)) return;
+          node.x = base.x;
+        });
+      }
+
+      alignColumnByLabel("C# Bootcamp-I", (label) => label === "C#-II Backend");
+      const c2Final = layoutNodes.find((node) => node.label === "C - II");
+      if (c2Final) c2Final.x = 4695;
+      alignColumnByLabel("C - II", (label) => /^C\s*-\s*/.test(label));
+
+      const sqlEntryFinal = layoutNodes.find((node) => node.label === "SQL - I");
+      if (sqlEntryFinal) {
+        const targetX = sqlEntryFinal.x;
+        const devRootFinal = layoutNodes.find((node) => node.label === "С - I");
+        if (devRootFinal) devRootFinal.x = targetX;
+        const devOpsFinal = layoutNodes.find((node) => node.label === "DevOps");
+        if (devOpsFinal) {
+          const delta = targetX - devOpsFinal.x;
+          devOpsFinal.x = targetX;
+          const devOpsTargets = (adjacency.get(devOpsFinal.id) || []).filter((id) =>
+            devIds.has(id)
+          );
+          devOpsTargets.forEach((id) => {
+            const child = nodeById.get(id);
+            if (child) child.x += delta;
+          });
+        }
+      }
+
+      const devShift = 250;
+      layoutNodes.forEach((node) => {
+        if (!devIds.has(node.id)) return;
+        if (isCppLabel(node.label) || node.label === "C - II") return;
+        node.x += devShift;
+      });
+
+      const cppColumnShift = 50;
+      layoutNodes.forEach((node) => {
+        if (!cppColumnLabels.has(node.label)) return;
+        node.x += cppColumnShift;
+      });
+
+      const nonDevelopmentTopShift = 2750;
+      const developmentLeftShift = 2550;
+      layoutNodes.forEach((node) => {
+        if (devIds.has(node.id)) {
+          node.x -= developmentLeftShift;
+        } else {
+          node.y += nonDevelopmentTopShift;
+        }
+      });
+
+      layoutNodes.forEach((node) => {
+        if (cppColumnLabels.has(node.label)) {
+          node.containerId = "cpp-stack";
+          return;
+        }
+        if (node.branchKey && node.branchKey !== "development" && node.branchKey !== "shared") {
+          node.containerId = `branch-${node.branchKey}`;
+          return;
+        }
+      });
+
+      let minX = 0;
+      let maxX = 0;
+      let maxY = 0;
+      layoutNodes.forEach((node) => {
+        minX = Math.min(minX, node.x);
+        maxX = Math.max(maxX, node.x + node.width);
+        maxY = Math.max(maxY, node.y + node.height);
+      });
+
+      if (minX < 0) {
+        const shiftX = Math.abs(minX);
+        layoutNodes.forEach((node) => {
+          node.x += shiftX;
+        });
+        maxX += shiftX;
+      }
+
+      layoutBounds = {
+        width: Math.max(maxX, nodeWidth),
+        height: Math.max(maxY, headerHeight),
+      };
+
+      const nodeIndex = new Map(layoutNodes.map((n) => [n.id, n]));
+      const edgeIndex = new Set();
+      layoutEdges = edges
+        .filter((edge) => nodeIndex.has(edge.source) && nodeIndex.has(edge.target))
+        .filter((edge) => edge.target !== devRootId)
+        .filter((edge) => {
+          if (!devRootId) return true;
+          const sourceIsDevRoot = edge.source === devRootId;
+          const targetIsDevRoot = edge.target === devRootId;
+          if (!sourceIsDevRoot && !targetIsDevRoot) return true;
+          const otherId = sourceIsDevRoot ? edge.target : edge.source;
+          return !topRootIds.has(otherId) || otherId === devRootId;
+        })
+        .map((edge) => {
+          edgeIndex.add(`${edge.source}|${edge.target}`);
+          const source = nodeIndex.get(edge.source);
+          const target = nodeIndex.get(edge.target);
+          let branchKey = "mixed";
+          if (source.branchKey === target.branchKey) {
+            branchKey = source.branchKey;
+          } else if (source.branchKey === "shared" && target.branchKey === "shared") {
+            branchKey = "shared";
+          } else if (source.branchKey === "shared") {
+            branchKey = target.branchKey;
+          } else if (target.branchKey === "shared") {
+            branchKey = source.branchKey;
+          }
+          return {
+            id: edge.id,
+            sourceId: edge.source,
+            targetId: edge.target,
+            branchKey,
+          };
+        });
+
+      const devOpsEdgeId = labelMap.get("DevOps");
+      const aiKotlinId = labelMap.get("A-I Kotlin");
+      const aiSwiftId = labelMap.get("A-I Swift");
+      const extraEdges = [];
+      if (
+        devOpsEdgeId &&
+        aiKotlinId &&
+        !edgeIndex.has(`${aiKotlinId}|${devOpsEdgeId}`)
+      ) {
+        extraEdges.push({
+          id: `edge-${aiKotlinId}-${devOpsEdgeId}`,
+          sourceId: aiKotlinId,
+          targetId: devOpsEdgeId,
+          branchKey: "development",
+        });
+      }
+      if (
+        devOpsEdgeId &&
+        aiSwiftId &&
+        !edgeIndex.has(`${aiSwiftId}|${devOpsEdgeId}`)
+      ) {
+        extraEdges.push({
+          id: `edge-${aiSwiftId}-${devOpsEdgeId}`,
+          sourceId: aiSwiftId,
+          targetId: devOpsEdgeId,
+          branchKey: "development",
+        });
+      }
+      if (extraEdges.length) {
+        layoutEdges = layoutEdges.concat(extraEdges);
+      }
+    }
+
+
+    function renderNodes() {
+      graphNodes.innerHTML = "";
+      
+      const containers = new Map();
+
+      const standAloneNodes = [];
+      layoutNodes.forEach((node) => {
+        if (node.containerId) {
+          if (!containers.has(node.containerId)) {
+            containers.set(node.containerId, []);
+          }
+          containers.get(node.containerId).push(node);
+        } else {
+          standAloneNodes.push(node);
+        }
+      });
+
+      containers.forEach((nodes, containerId) => {
+        nodes.sort((a, b) => a.y - b.y);
+
+        const container = document.createElement("div");
+        container.className = "graph-node-container";
+        container.dataset.containerId = containerId;
+        
+        let minX = Infinity;
+        let minY = Infinity;
+        let maxWidth = 0;
+        
+        nodes.forEach(n => {
+          minX = Math.min(minX, n.x);
+          minY = Math.min(minY, n.y);
+          maxWidth = Math.max(maxWidth, n.width);
+        });
+
+        container.style.left = `${minX}px`;
+        container.style.top = `${minY}px`;
+        container.style.width = `${maxWidth}px`;
+        // Use flex column for dynamic spacing
+        container.style.display = "flex";
+        container.style.flexDirection = "column";
+        
+        let gap = 90; 
+  
+        container.style.gap = `${gap}px`;
+        container.style.position = "absolute";
+
+        nodes.forEach((node) => {
+          const nodeEl = createNodeElement(node, true);
+          container.appendChild(nodeEl);
+        });
+
+        graphNodes.appendChild(container);
+      });
+
+      standAloneNodes.forEach((node) => {
+        const nodeEl = createNodeElement(node, false);
+        graphNodes.appendChild(nodeEl);
+      });
+    }
+
+    function createNodeElement(node, inContainer) {
+        const nodeEl = document.createElement("div");
+        nodeEl.className = "graph-node";
+        
+        if (!inContainer) {
+          nodeEl.style.left = `${node.x}px`;
+          nodeEl.style.top = `${node.y}px`;
+          nodeEl.style.position = "absolute";
+        } else {
+          nodeEl.style.position = "relative";
+          nodeEl.style.marginBottom = "0";
+        }
+        
+        nodeEl.style.width = `${node.width}px`;
+        if (node.compact) nodeEl.classList.add("compact");
+        if (node.placeholder) nodeEl.classList.add("placeholder");
+        if (allNodesCollapsed) nodeEl.classList.add("collapsed");
+        nodeEl.dataset.nodeId = node.id;
+        nodeEl.dataset.branch = node.branchKey || "";
+
+        const topHandle = document.createElement("div");
+        topHandle.className = "graph-handle top";
+        nodeEl.appendChild(topHandle);
+
+        const title = document.createElement("div");
+        title.className = "graph-node-title";
+        title.textContent = node.label;
+        if (node.placeholder) {
+          title.textContent = title.textContent.replace(/\s*\([^)]*\)/g, "").trim();
+        }
+        nodeEl.appendChild(title);
+
+        const body = document.createElement("div");
+        body.className = "graph-node-body";
+        const reverseItems = node.branchKey === "development";
+        let items = node.items.length
+          ? reverseItems
+            ? node.items.slice().reverse()
+            : node.items.slice()
+          : [{ code: "Нет проектов", entityType: "" }];
+        if (sqlPlaceholderLabels.has(node.label)) {
+          title.textContent = "SQL";
+        }
+        items.forEach((item) => {
+          const row = document.createElement("div");
+          row.className = "graph-item";
+          const code = document.createElement("span");
+          code.textContent = item.code || item.id || "";
+          row.appendChild(code);
+          row.dataset.search = `${item.code || ""} ${item.entityType || ""}`.toLowerCase();
+          if (
+            (item.entityType === "PROJECT" || item.entityType === "COURSE") &&
+            item.entityId
+          ) {
+            row.classList.add("clickable");
+            row.dataset.entityType = item.entityType || "";
+            row.dataset.entityId = item.entityId || "";
+            row.dataset.code = item.code || "";
+            row.addEventListener("mousedown", (e) => e.stopPropagation());
+            row.addEventListener("click", (e) =>
+              showProjectTooltip(e, row, item, node.label)
+            );
+          }
+          body.appendChild(row);
+        });
+        nodeEl.appendChild(body);
+
+        const bottomHandle = document.createElement("div");
+        bottomHandle.className = "graph-handle bottom";
+        nodeEl.appendChild(bottomHandle);
+
+        return nodeEl;
+    }
+
+    function renderEdges() {
+      graphEdges.innerHTML = "";
+      graphEdges.setAttribute("width", layoutBounds.width);
+      graphEdges.setAttribute("height", layoutBounds.height);
+      graphEdges.setAttribute("viewBox", `0 0 ${layoutBounds.width} ${layoutBounds.height}`);
+
+      const nodeElements = new Map();
+      document.querySelectorAll(".graph-node").forEach((nodeEl) => {
+        nodeElements.set(nodeEl.dataset.nodeId, nodeEl);
+      });
+
+      const rootRect = graphNodes.getBoundingClientRect();
+      const scale = view.scale || 1; 
+
+      function getNodeCenter(el) {
+         if (!el) return { x: 0, y: 0, width: 0, height: 0 };
+         
+         let x = 0;
+         let y = 0;
+         let curr = el;
+         while (curr && curr !== graphNodes) {
+           x += curr.offsetLeft;
+           y += curr.offsetTop;
+           curr = curr.offsetParent;
+         }
+         
+         return {
+           x: x + el.offsetWidth / 2,
+           y: y,
+           bottomY: y + el.offsetHeight,
+           width: el.offsetWidth,
+           height: el.offsetHeight
+         };
+      }
+
+      const handleOffset = 6;
+      layoutEdges.forEach((edge) => {
+        const sourceEl = nodeElements.get(String(edge.sourceId || ""));
+        const targetEl = nodeElements.get(String(edge.targetId || ""));
+        if (!sourceEl || !targetEl) return;
+
+        const sourcePos = getNodeCenter(sourceEl);
+        const targetPos = getNodeCenter(targetEl);
+
+        const x1 = sourcePos.x;
+        const y1 = sourcePos.bottomY + handleOffset;
+        const x2 = targetPos.x;
+        const y2 = targetPos.y - handleOffset;
+
+        const curve = Math.max(60, Math.abs(y2 - y1) * 0.5);
+        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        const d = `M ${x1} ${y1} C ${x1} ${y1 + curve} ${x2} ${y2 - curve} ${x2} ${y2}`;
+        path.setAttribute("d", d);
+        path.setAttribute("stroke", "#8b8f99");
+        path.setAttribute("stroke-width", "1.5");
+        path.setAttribute("fill", "none");
+        path.classList.add("graph-edge");
+        path.dataset.branch = edge.branchKey || "";
+        path.dataset.sourceId = edge.sourceId || "";
+        path.dataset.targetId = edge.targetId || "";
+        graphEdges.appendChild(path);
+      });
+    }
+
+    function renderBranchLabels() {
+      document.querySelectorAll(".branch-label").forEach((el) => el.remove());
+
+      branchDefinitions.forEach((branch) => {
+        if (!branch.humanReadableLabel) return;
+        const rootLabel = branch.roots && branch.roots[0];
+        if (!rootLabel) return;
+
+        const node = layoutNodes.find((n) => n.label === rootLabel);
+        if (!node) return;
+
+        const labelEl = document.createElement("div");
+        labelEl.className = "branch-label";
+        labelEl.textContent = branch.humanReadableLabel;
+
+        const cx = node.x + node.width / 2;
+        const cy = node.y - 20;
+
+        labelEl.style.left = `${cx}px`;
+        labelEl.style.top = `${cy}px`;
+
+        graphNodes.appendChild(labelEl);
+      });
+    }
+
+    function renderGraph(raw, preserveView = false) {
+      buildLayout(raw);
+      graphViewport.style.width = `${layoutBounds.width}px`;
+      graphViewport.style.height = `${layoutBounds.height}px`;
+      renderNodes();
+      renderBranchLabels();
+      syncCollapseToggleLabel();
+      if (edgeResizeObserver) edgeResizeObserver.disconnect();
+      edgeResizeObserver = new ResizeObserver(() => scheduleEdgeUpdate());
+      document.querySelectorAll(".graph-node").forEach((nodeEl) => {
+        edgeResizeObserver.observe(nodeEl);
+      });
+      renderEdges();
+      applyBranchFilter(branchSelect.value || "all");
+      if (!preserveView) {
+        fitView();
+      }
+    }
+
+    function clearHighlights() {
+      document.querySelectorAll(".graph-node.highlight").forEach((node) => {
+        node.classList.remove("highlight");
+      });
+    }
+
+    function runSearch(value) {
+      const query = value.trim().toLowerCase();
+      clearHighlights();
+      if (!query || query.length < 2) return;
+      const nodes = layoutNodes.filter((n) => {
+        if (n.label.toLowerCase().includes(query)) return true;
+        return n.items.some((item) => (item.code || "").toLowerCase().includes(query));
+      });
+      if (!nodes.length) return;
+      nodes.forEach((node) => {
+        const el = document.querySelector(`[data-node-id="${node.id}"]`);
+        if (el) el.classList.add("highlight");
+      });
+      focusOnNodes(nodes);
+    }
+
+    function applyBranchFilter(key) {
+      const activeKey = key || "all";
+      const nodeById = new Map(layoutNodes.map((node) => [String(node.id), node]));
+      document.querySelectorAll(".graph-node").forEach((node) => {
+        if (activeKey === "all") {
+          node.classList.remove("dim");
+          return;
+        }
+        if (node.dataset.branch === "shared") {
+          if (activeKey === "development") {
+            node.classList.remove("dim");
+          } else {
+            node.classList.add("dim");
+          }
+          return;
+        }
+        if (node.dataset.branch !== activeKey) {
+          node.classList.add("dim");
+        } else {
+          node.classList.remove("dim");
+        }
+      });
+      document.querySelectorAll(".graph-edge").forEach((edge) => {
+        if (activeKey === "all") {
+          edge.classList.remove("dim");
+          return;
+        }
+        const source = nodeById.get(edge.dataset.sourceId || "");
+        const target = nodeById.get(edge.dataset.targetId || "");
+        if (!source || !target) {
+          if (edge.dataset.branch !== activeKey) edge.classList.add("dim");
+          else edge.classList.remove("dim");
+          return;
+        }
+        const sourceBranch = source.branchKey || "";
+        const targetBranch = target.branchKey || "";
+        const sourceShared = sourceBranch === "shared";
+        const targetShared = targetBranch === "shared";
+
+        const effectiveSource = sourceShared ? "development" : sourceBranch;
+        const effectiveTarget = targetShared ? "development" : targetBranch;
+
+        if (effectiveSource === activeKey && effectiveTarget === activeKey) {
+          edge.classList.remove("dim");
+        } else {
+          edge.classList.add("dim");
+        }
+      });
+    }
+
+    function focusOnNodes(nodes) {
+      if (!nodes.length) return;
+      if (nodes.length === 1) {
+        focusOnNode(nodes[0]);
+        return;
+      }
+
+      let minX = Infinity;
+      let maxX = -Infinity;
+      let minY = Infinity;
+      let maxY = -Infinity;
+
+      nodes.forEach((node) => {
+        minX = Math.min(minX, node.x);
+        maxX = Math.max(maxX, node.x + node.width);
+        minY = Math.min(minY, node.y);
+        maxY = Math.max(maxY, node.y + node.height);
+      });
+
+      const rect = graphRoot.getBoundingClientRect();
+      const padding = 80;
+      const width = maxX - minX;
+      const height = maxY - minY;
+
+      if (width <= 0 || height <= 0) return;
+
+      const scaleX = (rect.width - padding * 2) / width;
+      const scaleY = (rect.height - padding * 2) / height;
+      const targetScale = clamp(Math.min(scaleX, scaleY), minScale, maxScale);
+
+      view.scale = targetScale;
+      view.x = (rect.width - width * view.scale) / 2 - minX * view.scale;
+      view.y = (rect.height - height * view.scale) / 2 - minY * view.scale;
+
+      applyTransform();
+    }
+
+    function focusOnBranch(key) {
+      if (!key || key === "all") {
+        fitView();
+        return;
+      }
+
+      const branchNodes = layoutNodes.filter((node) => {
+        if (node.branchKey === key) return true;
+        if (key === "development" && node.branchKey === "shared") return true;
+        return false;
+      });
+
+      focusOnNodes(branchNodes);
+    }
+
+    async function loadGraph() {
+      const cached = loadGraphCache();
+      let hasRendered = false;
+      if (cached) {
+        renderGraph(cached);
+        hasRendered = true;
+        showStatus("Граф загружен из локального хранилища");
+      } else {
+        showGraphLoading();
+        showStatus("Загрузка графа...", false);
+      }
+
+      try {
+        const token = await getAccessToken();
+        const res = await fetch(`${BASE_URL}/graph`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        saveGraphCache(data);
+        renderGraph(data, hasRendered);
+        hideGraphLoading();
+        showStatus("Граф загружен");
+        return;
+      } catch (e) { }
+
+      try {
+        const res = await fetch(DATA_URL);
+        const data = await res.json();
+        saveGraphCache(data);
+        renderGraph(data, hasRendered);
+        hideGraphLoading();
+        showStatus("Граф загружен из локального файла");
+      } catch (err) {
+        console.error(err);
+        hideGraphLoading();
+        showStatus("Ошибка загрузки графа", true);
+      }
+    }
+
+    graphRoot.addEventListener("mousedown", (e) => {
+      if (e.button !== 0) return;
+      hideProjectTooltip();
+      isPanning = true;
+      panStart = { x: e.clientX, y: e.clientY, viewX: view.x, viewY: view.y };
+    });
+
+    window.addEventListener("mousemove", (e) => {
+      if (!isPanning) return;
+      const dx = e.clientX - panStart.x;
+      const dy = e.clientY - panStart.y;
+      view.x = panStart.viewX + dx;
+      view.y = panStart.viewY + dy;
+      applyTransform();
+    });
+
+    window.addEventListener("mouseup", () => {
+      isPanning = false;
+    });
+
+    graphRoot.addEventListener(
+      "wheel",
+      (e) => {
+        e.preventDefault();
+        hideProjectTooltip();
+        const rect = graphRoot.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+        const delta = e.deltaY < 0 ? 1.1 : 0.9;
+        const nextScale = clamp(view.scale * delta, minScale, maxScale);
+        const worldX = (mouseX - view.x) / view.scale;
+        const worldY = (mouseY - view.y) / view.scale;
+        view.scale = nextScale;
+        view.x = mouseX - worldX * view.scale;
+        view.y = mouseY - worldY * view.scale;
+        applyTransform();
+      },
+      { passive: false }
+    );
+
+    function zoomBy(factor) {
+      hideProjectTooltip();
+      const rect = graphRoot.getBoundingClientRect();
+      const centerX = rect.width / 2;
+      const centerY = rect.height / 2;
+
+      const worldX = (centerX - view.x) / view.scale;
+      const worldY = (centerY - view.y) / view.scale;
+
+      const nextScale = clamp(view.scale * factor, minScale, maxScale);
+
+      view.scale = nextScale;
+      view.x = centerX - worldX * view.scale;
+      view.y = centerY - worldY * view.scale;
+
+      applyTransform();
+    }
+
+    zoomInBtn.addEventListener("click", () => zoomBy(1.2));
+    zoomOutBtn.addEventListener("click", () => zoomBy(0.8));
+
+    fitViewBtn.addEventListener("click", fitView);
+    collapseToggleBtn.addEventListener("click", () => {
+      const nodeEls = Array.from(document.querySelectorAll(".graph-node"));
+      if (!nodeEls.length) return;
+      const everyCollapsed = nodeEls.every((nodeEl) =>
+        nodeEl.classList.contains("collapsed")
+      );
+      setAllNodesCollapsed(!everyCollapsed);
+    });
+    searchInput.addEventListener("input", (e) => runSearch(e.target.value));
+    branchSelect.addEventListener("change", (e) =>
+      (() => {
+        const key = e.target.value;
+        hideProjectTooltip();
+        applyBranchFilter(key);
+        focusOnBranch(key);
+      })()
+    );
+    window.addEventListener("resize", fitView);
+    document.addEventListener("click", (e) => {
+      if (!projectTooltip.classList.contains("active")) return;
+      if (projectTooltip.contains(e.target)) return;
+      if (e.target.closest && e.target.closest(".graph-item")) return;
+      hideProjectTooltip();
+    });
+
+    window.addEventListener("load", () => {
+      loadGraph();
+    });
+  </script>
+</body>
+
+</html>

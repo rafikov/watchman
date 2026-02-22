@@ -1,114 +1,80 @@
-/****************************************/
-/****** Доступ к Платформе Школы 21 *****/
-/****************************************/
-
 const S21_AUTH_CONFIG = {
   authUrl:
     "http://127.0.0.1:8080/https://auth.21-school.ru/auth/realms/EduPowerKeycloak/protocol/openid-connect/token",
-  defaultUsername: "", // Логин в Школе: "watchman"
-  defaultPassword: "", // Пароль в Школе: "123456"
 };
-
-
-/****************************************/
-/******* Доступ к боту в Телеграм ******/
-/****************************************/
-
-const TG_CONFIG = {
-  botToken: "", // Бот создается в @BotFather. Токен: "xxxxxxxxx:xxxxxx..."
-  userId: "", // Получить свой ID в Телегарм через @userinfobot. ID: "xxxxxxxxx"
-};
-
-
-/****************************************/
-/********* URL для доступа к API ********/
-/****************************************/
 
 const BASE_URL =
   "http://127.0.0.1:8080/https://platform.21-school.ru/services/21-school/api/v1";
+const WATCHMAN_PROXY_ORIGIN = "http://127.0.0.1:8080";
+const S21_PLATFORM_ORIGIN = "https://platform.21-school.ru";
+
+function getProxyOrigin() {
+  return WATCHMAN_PROXY_ORIGIN;
+}
+
+function getPlatformProxyUrl() {
+  return `${WATCHMAN_PROXY_ORIGIN}/${S21_PLATFORM_ORIGIN}/`;
+}
+
+function getTelegramProxyUrl(token) {
+  return `${WATCHMAN_PROXY_ORIGIN}/https://api.telegram.org/bot${token}/getMe`;
+}
 
 
 
 
 function getStoredCredentials() {
   try {
-    const session = sessionStorage.getItem("watchman_creds");
-    if (session) return JSON.parse(session);
+    const stored = localStorage.getItem("watchman_creds");
+    if (stored) return JSON.parse(stored);
 
-    const match = document.cookie.match(new RegExp('(^| )watchman_creds=([^;]+)'));
+    const match = document.cookie.match(
+      new RegExp("(^| )watchman_creds=([^;]+)")
+    );
     if (match) {
-        try {
-            return JSON.parse(decodeURIComponent(match[2]));
-        } catch (e) {
-            console.warn("Не удается прочитать логин и пароль из куки", e);
-        }
+      try {
+        return JSON.parse(decodeURIComponent(match[2]));
+      } catch (e) {
+        console.warn("Не удается прочитать логин и пароль из куки", e);
+      }
     }
 
-    const stored = localStorage.getItem("watchman_creds");
-    return stored ? JSON.parse(stored) : null;
+    return null;
   } catch (e) {
     console.warn("Не удается прочитать логин и пароль из локального хранилища", e);
     return null;
   }
 }
 
-async function verifyTelegramBot() {
+async function verifyTelegramBot(tokenOverride = null) {
   const creds = getStoredCredentials();
-  const token = (creds && creds.tgToken) || TG_CONFIG.botToken;
+  const token = tokenOverride || (creds && creds.tgToken);
 
   if (!token) {
     throw new Error("Нет токена Телеграм бота");
   }
 
-  const url = `https://api.telegram.org/bot${token}/getMe`;
-  try {
+  const checkUrl = async (url) => {
     const response = await fetch(url);
     const data = await response.json();
-
     if (!response.ok || !data.ok) {
       throw new Error("Не удается верифицировать Телеграм бота");
     }
-
     return data.result.username;
-  } catch (error) {
-    console.error("Ошибка верификации Телеграм:", error);
-    throw error;
-  }
-}
+  };
 
-async function sendTelegramMessage(message) {
-  const creds = getStoredCredentials();
-  const token = (creds && creds.tgToken) || TG_CONFIG.botToken;
-  const userId = (creds && creds.tgId) || TG_CONFIG.userId;
-
-  if (!token || !userId) {
-    console.warn("Уведомления в телеграм отключены: нет токена и ID");
-    return;
-  }
-
-  const url = `https://api.telegram.org/bot${token}/sendMessage`;
   try {
-    const response = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        chat_id: userId,
-        text: message,
-      }),
-    });
-
-    const data = await response.json();
-    if (!data.ok) {
-      console.error("Не удалось отправить сообщение в Телеграм:", data);
-    } else {
-      console.log("Сообщение отправлено в Телеграм для:", userId);
+    return await checkUrl(`https://api.telegram.org/bot${token}/getMe`);
+  } catch (directError) {
+    try {
+      return await checkUrl(getTelegramProxyUrl(token));
+    } catch (proxyError) {
+      console.error("Ошибка верификации Телеграм:", proxyError);
+      throw proxyError;
     }
-  } catch (error) {
-    console.error("Не удалось отправить сообщение в Телеграм:", error);
   }
 }
+
 
 let cachedToken = null;
 let tokenExpiration = 0;
@@ -126,17 +92,17 @@ try {
   console.warn("Не удается прочитать токен из локального хранилища", e);
 }
 
-async function getAccessToken(username, password) {
+async function getAccessToken(username, password, force = false) {
   const creds = getStoredCredentials();
   
-  const effectiveUser = username || (creds && creds.s21Login) || S21_AUTH_CONFIG.defaultUsername;
-  const effectivePass = password || (creds && creds.s21Pass) || S21_AUTH_CONFIG.defaultPassword;
+  const effectiveUser = username || (creds && creds.s21Login);
+  const effectivePass = password || (creds && creds.s21Pass);
 
   if (!effectiveUser || !effectivePass) {
     throw new Error("Необходимы логин и пароль Платформы Школы 21");
   }
 
-  if (cachedToken && Date.now() < tokenExpiration - 60000) {
+  if (!force && cachedToken && Date.now() < tokenExpiration - 60000) {
     return cachedToken;
   }
 
@@ -164,6 +130,10 @@ async function getAccessToken(username, password) {
         if (response.status >= 500) {
           throw new Error(`Ошибка сервера ${response.status}`);
         }
+        cachedToken = null;
+        tokenExpiration = 0;
+        localStorage.removeItem("s21_auth_token");
+        
         throw new Error(
           `Не удалась аутентификация: ${
             data.error_description || "Неправильные логин и пароль"
